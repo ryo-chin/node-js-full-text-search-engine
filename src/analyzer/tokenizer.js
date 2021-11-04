@@ -3,14 +3,14 @@ const builder = kuromoji.builder({
   dicPath: 'node_modules/kuromoji/dict',
 });
 
-class Tokenizer {
+class JapaneseTokenizer {
   static async build() {
     return new Promise((resolve, reject) => {
       builder.build((err, tokenizer) => {
         if (err) {
           reject(err);
         }
-        resolve(new Tokenizer(tokenizer));
+        resolve(new JapaneseTokenizer(tokenizer));
       });
     });
   }
@@ -27,4 +27,4 @@ class Tokenizer {
   }
 }
 
-module.exports = Tokenizer;
+module.exports = JapaneseTokenizer;
