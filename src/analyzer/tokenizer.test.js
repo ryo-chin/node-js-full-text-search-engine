@@ -3,7 +3,6 @@ const Tokenizer = require('./tokenizer.js');
 test('tokenize', async () => {
   const tokenizer = await Tokenizer.build();
   const tokens = tokenizer.tokenize('吾輩は猫である。名前はまだ無い。');
-  console.log(tokens);
   expect(tokens.map((t) => t.surface)).toEqual([
     '吾輩',
     'は',

@@ -1,5 +1,5 @@
 const Searcher = require('./searcher');
-const { buildDefaultIndexer } = require('../test/factory.test');
+const { buildDefaultIndexer } = require('../test/factory');
 
 test('search', async () => {
   const indexer = await buildDefaultIndexer();

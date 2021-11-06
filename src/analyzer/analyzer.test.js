@@ -6,7 +6,6 @@ test('analyzer with no filter', async () => {
   const tokenizer = await Tokenizer.build();
   const analyzer = new Analyzer(tokenizer, [], []);
   const tokens = analyzer.analyze('吾輩は猫である。名前はまだ無い。');
-  console.log(tokens);
   expect(tokens.map((t) => t.surface)).toEqual([
     '吾輩',
     'は',
@@ -27,7 +26,6 @@ test('analyzer with token filter', async () => {
   const tokenizer = await Tokenizer.build();
   const analyzer = new Analyzer(tokenizer, [], [posFilter]);
   const tokens = analyzer.analyze('吾輩は猫である。名前はまだ無い。');
-  console.log(tokens);
   expect(tokens.map((t) => t.surface)).toEqual([
     '吾輩',
     '猫',
