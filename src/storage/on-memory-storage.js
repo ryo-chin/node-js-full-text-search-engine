@@ -3,6 +3,7 @@ class OnMemoryStorage {
     this.documents = new Map();
     this.indexies = new Map();
   }
+
   saveDocument(documentId, document) {
     this.documents.set(documentId, document);
   }

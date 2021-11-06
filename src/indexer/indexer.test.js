@@ -1,14 +1,4 @@
-const Indexer = require('./indexer');
-const OnMemoryStorage = require('../storage/on-memory-storage');
-const UUIDGenerator = require('../storage/uuid-generator');
-const { buildDefaultAnalyzer } = require('../test/factory.test');
-
-async function buildDefaultIndexer() {
-  const analyzer = await buildDefaultAnalyzer();
-  const storage = new OnMemoryStorage();
-  const idGenerator = new UUIDGenerator();
-  return new Indexer(analyzer, storage, idGenerator);
-}
+const { buildDefaultIndexer } = require('../test/factory.test');
 
 test('index', async () => {
   const indexer = await buildDefaultIndexer();
