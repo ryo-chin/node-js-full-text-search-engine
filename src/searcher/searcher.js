@@ -6,17 +6,14 @@ class Searcher {
     this.storage = storage;
   }
 
-  search(query) {
+  async search(query) {
     const tokens = this.analyzer.analyze(query);
-
     const targetIndexIds = toSet(tokens.map((token) => token.surface));
-    const indexes = targetIndexIds
-      .map((indexId) => this.storage.loadIndex(indexId))
-      .filter((index) => index);
+    const indexes = await this.storage.loadIndexes(targetIndexIds);
     const documentIds = toSet(
       indexes.flatMap((index) => index.postings.map((p) => p.documentId))
     );
-    return documentIds.map((docId) => this.storage.loadDocument(docId));
+    return this.storage.loadDocuments(documentIds);
   }
 }
 

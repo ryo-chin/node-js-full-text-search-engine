@@ -1,3 +1,7 @@
+const InvertedIndex = require('../data/inverted-index');
+const Posting = require('../data/posting');
+const Document = require('../data/document-data');
+
 class Indexer {
   constructor(analyzer, storage, idGenerator, limit) {
     this.analyzer = analyzer;
@@ -7,15 +11,9 @@ class Indexer {
     this.limit = limit || 1000;
   }
 
-  addDocument(text) {
+  async addDocument(text) {
     const documentId = this.idGenerator.generate();
     const tokens = this.analyzer.analyze(text);
-    this.storage.saveDocument(documentId, {
-      documentId,
-      text,
-      tokenCount: tokens.length,
-    });
-
     const tokenWithUseCounts = tokens.reduce((tokens, token) => {
       if (!tokens.get(token.surface)) {
         tokens.set(token.surface, { ...token, useCount: 0 });
@@ -25,7 +23,10 @@ class Indexer {
     }, new Map());
     tokenWithUseCounts.forEach((token) => {
       if (!this.tempIndexes.get(token.surface)) {
-        this.tempIndexes.set(token.surface, new InvertedIndex(token));
+        this.tempIndexes.set(
+          token.surface,
+          new InvertedIndex(token.surface, token)
+        );
       }
       const posting = new Posting(documentId, token.useCount);
       this.tempIndexes.get(token.surface).addPosting(posting);
@@ -35,43 +36,19 @@ class Indexer {
       this.flush();
     }
 
-    return documentId;
+    const doc = new Document(documentId, text, tokens.length);
+    return this.storage.saveDocument(doc).then(() => documentId);
   }
 
-  flush() {
-    this.tempIndexes.forEach((index) => {
-      const indexed = this.storage.loadIndex(index.indexId);
-      const mergedIndex = indexed ? indexed.merge(index) : index;
-      this.storage.saveIndex(mergedIndex);
-    });
-    this.tempIndexes = new Map();
-  }
-}
-
-class InvertedIndex {
-  constructor(token) {
-    this.indexId = token.surface;
-    this.token = {
-      surface: token.surface,
-      pos: token.pos,
-    };
-    this.postings = [];
-  }
-
-  addPosting(posting) {
-    this.postings.push(posting);
-  }
-
-  merge(otherIndex) {
-    otherIndex.postings.forEach((pos) => this.addPosting(pos));
-    return this;
-  }
-}
-
-class Posting {
-  constructor(documentId, useCount) {
-    this.documentId = documentId;
-    this.useCount = useCount;
+  async flush() {
+    const tempIndexValues = Array.from(this.tempIndexes.values());
+    return Promise.all(
+      tempIndexValues.map(async (index) => {
+        const indexed = await this.storage.loadIndex(index.indexId);
+        const mergedIndex = indexed ? indexed.merge(index) : index;
+        return await this.storage.saveIndex(mergedIndex);
+      })
+    ).then(() => (this.tempIndexes = new Map()));
   }
 }
 

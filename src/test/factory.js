@@ -1,8 +1,8 @@
 const Analyzer = require('../analyzer/analyzer.js');
 const Tokenizer = require('../analyzer/tokenizer.js');
-const OnMemoryStorage = require('../storage/on-memory-storage');
 const UUIDGenerator = require('../indexer/uuid-generator');
 const Indexer = require('../indexer/indexer');
+const LocalFileStorage = require('../storage/local-file-storage');
 const { POSFilter } = require('../analyzer/token-filters');
 
 const buildDefaultAnalyzer = async function buildDefaultAnalyzer() {
@@ -10,9 +10,9 @@ const buildDefaultAnalyzer = async function buildDefaultAnalyzer() {
   return new Analyzer(tokenizer, [], [new POSFilter()]);
 };
 
-async function buildDefaultIndexer() {
+async function buildDefaultIndexer(storagePath) {
   const analyzer = await buildDefaultAnalyzer();
-  const storage = new OnMemoryStorage();
+  const storage = await LocalFileStorage.build(storagePath);
   const idGenerator = new UUIDGenerator();
   return new Indexer(analyzer, storage, idGenerator);
 }
