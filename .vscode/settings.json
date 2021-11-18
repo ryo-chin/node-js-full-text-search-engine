@@ -1,0 +1,15 @@
+{
+  "files.autoSave": "afterDelay",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.showFoldingControls": "always",
+  "editor.formatOnPaste": true,
+  "editor.formatOnSave": true,
+  "editor.dragAndDrop": false,
+  "editor.tabSize": 2,
+  "files.eol": "\n",
+  "files.autoGuessEncoding": true,
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "files.trimTrailingWhitespace": true,
+  "debug.inlineValues": true
+}
