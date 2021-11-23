@@ -1,4 +1,4 @@
 .idea
 node_modules
-db/database.sqlite
+db/
 tmp
