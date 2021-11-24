@@ -6,7 +6,10 @@ class Analyzer {
   }
 
   analyze(text) {
-    const tokens = this.tokenizer.tokenize(text);
+    const filteredText = this.charFilters.reduce((text, filter) => {
+      return filter.filter(text);
+    }, text);
+    const tokens = this.tokenizer.tokenize(filteredText);
     return tokens
       .map((token) => {
         let filtered = token;

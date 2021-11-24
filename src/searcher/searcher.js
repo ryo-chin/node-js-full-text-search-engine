@@ -11,7 +11,9 @@ class Searcher {
     const targetIndexIds = toSet(tokens.map((token) => token.surface));
     const indexes = await this.storage.loadIndexes(targetIndexIds);
     const documentIds = toSet(
-      indexes.flatMap((index) => index.postings.map((p) => p.documentId))
+      indexes
+        .filter((index) => index)
+        .flatMap((index) => index.postings.map((p) => p.documentId))
     );
     return this.storage.loadDocuments(documentIds);
   }

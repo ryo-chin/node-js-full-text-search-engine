@@ -108,6 +108,8 @@ class LocalFileStorage {
   }
 
   async _set(tableName, key, value) {
+    const escapedKey = this.escape(key);
+    const escapedValue = this.escape(value);
     return new Promise((resolve, reject) => {
       const query = `INSERT INTO ${tableName} (${KEY_COLUMN}, ${VALUE_COLUMN}) 
        VALUES ('${key}', '${value}') 
@@ -137,6 +139,10 @@ class LocalFileStorage {
         resolve(parsedBody);
       });
     });
+  }
+
+  escape(text) {
+    return text.replace(/'/g, "''");
   }
 }
 
