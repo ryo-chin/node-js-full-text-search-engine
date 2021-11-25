@@ -31,9 +31,9 @@ require('yargs')
       const indexer = await buildDefaultIndexer();
       const parser = new WikipediaJSONDataLoader();
       const results = await parser.parse(argv.count, argv.inputFilePath);
-      for (const [index, text] of results.map((res) => res.text).entries()) {
-        await indexer.addDocument(text);
-        console.info(`[${index + 1}] ${text.slice(0, 5)}`);
+      for (const [index, res] of results.entries()) {
+        await indexer.addDocument(res.title, res.text);
+        console.info(`[${index + 1}] ${res.title}`);
       }
       await indexer.flush();
       performanceLogger.end('index finish');

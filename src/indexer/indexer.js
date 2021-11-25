@@ -11,7 +11,7 @@ class Indexer {
     this.limit = limit || 100000;
   }
 
-  async addDocument(text) {
+  async addDocument(title, text) {
     const documentId = this.idGenerator.generate();
     const tokens = this.analyzer.analyze(text);
     const tokenWithUseCounts = tokens.reduce((tokens, token) => {
@@ -36,7 +36,7 @@ class Indexer {
       await this.flush();
     }
 
-    const doc = new Document(documentId, text, tokens.length);
+    const doc = new Document(documentId, title, text, tokens.length);
     return this.storage.saveDocument(doc).then(() => documentId);
   }
 

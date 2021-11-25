@@ -1,6 +1,7 @@
 class DocumentData {
-  constructor(documentId, text, tokenCount) {
+  constructor(documentId, title, text, tokenCount) {
     this.documentId = documentId;
+    this.title = title;
     this.text = text;
     this.tokenCount = tokenCount;
   }
