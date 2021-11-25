@@ -1,4 +1,4 @@
-const WikipediaJSONDataLoader = require('./wikipedia-json-data-loader');
+const WikipediaJSONDataLoader = require('./json-data-loader');
 
 test('parse', async () => {
   const parser = new WikipediaJSONDataLoader();

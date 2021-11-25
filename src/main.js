@@ -1,6 +1,6 @@
 const http = require('http');
-const index = require('./indexer/index.js');
-const search = require('./searcher/search.js');
+const index = require('./controller');
+const search = require('./controller/search.js');
 
 const routing = {
   '/index': index,

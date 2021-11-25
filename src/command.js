@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 
-const PerformanceLogger = require('./util/performance-logger');
-const WikipediaJSONDataLoader = require('./dump/wikipedia-json-data-loader');
-const { buildDefaultIndexer } = require('./test/factory');
+const indexByExternalData = require('./commands/index-by-external-data.js');
+
 require('yargs')
   .scriptName('search-engine')
   .usage('$0 <cmd> [args]')
@@ -12,7 +11,11 @@ require('yargs')
     (yargs) => {
       yargs.positional('inputFilePath', {
         type: 'string',
-        describe: 'wikipedia dump data file path',
+        describe: 'json dump data file path',
+      });
+      yargs.positional('outputFilePath', {
+        type: 'string',
+        describe: 'output file path (sqlite3)',
       });
       yargs.positional('count', {
         type: 'number',
@@ -21,22 +24,11 @@ require('yargs')
       });
     },
     async (argv) => {
-      console.info(
-        'args inputFilePath=',
-        argv.inputFilePath,
-        'count=',
-        argv.count
-      );
-      const performanceLogger = new PerformanceLogger();
-      const indexer = await buildDefaultIndexer();
-      const parser = new WikipediaJSONDataLoader();
-      const results = await parser.parse(argv.count, argv.inputFilePath);
-      for (const [index, res] of results.entries()) {
-        await indexer.addDocument(res.title, res.text);
-        console.info(`[${index + 1}] ${res.title}`);
-      }
-      await indexer.flush();
-      performanceLogger.end('index finish');
+      await indexByExternalData({
+        inputFilePath: argv.inputFilePath,
+        outputFilePath: argv.outputFilePath,
+        count: argv.count,
+      });
     }
   )
   .help().argv;

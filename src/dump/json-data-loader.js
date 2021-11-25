@@ -1,7 +1,7 @@
 const fs = require('fs');
 const readline = require('readline');
 
-class WikipediaJSONDataLoader {
+class JSONDataLoader {
   /**
    * result json
    * {
@@ -65,4 +65,4 @@ class WikipediaJSONDataLoader {
   }
 }
 
-module.exports = WikipediaJSONDataLoader;
+module.exports = JSONDataLoader;
