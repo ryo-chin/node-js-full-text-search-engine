@@ -8,7 +8,7 @@ class Indexer {
     this.storage = storage;
     this.idGenerator = idGenerator;
     this.tempIndexes = new Map();
-    this.limit = limit || 1000;
+    this.limit = limit || 100000;
   }
 
   async addDocument(text) {
@@ -33,7 +33,7 @@ class Indexer {
     });
 
     if (this.tempIndexes.size > this.limit) {
-      this.flush();
+      await this.flush();
     }
 
     const doc = new Document(documentId, text, tokens.length);
@@ -42,13 +42,14 @@ class Indexer {
 
   async flush() {
     const tempIndexValues = Array.from(this.tempIndexes.values());
-    return Promise.all(
-      tempIndexValues.map(async (index) => {
-        const indexed = await this.storage.loadIndex(index.indexId);
-        const mergedIndex = indexed ? indexed.merge(index) : index;
-        return await this.storage.saveIndex(mergedIndex);
-      })
-    ).then(() => (this.tempIndexes = new Map()));
+    console.info('flush start tempIndexCount=', tempIndexValues.length);
+    for (const index of tempIndexValues) {
+      const indexed = await this.storage.loadIndex(index.indexId);
+      const mergedIndex = indexed ? indexed.merge(index) : index;
+      await this.storage.saveIndex(mergedIndex);
+    }
+    this.tempIndexes.clear();
+    console.info('flush end');
   }
 }
 

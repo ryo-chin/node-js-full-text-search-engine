@@ -112,11 +112,13 @@ class LocalFileStorage {
     const escapedValue = this.escape(value);
     return new Promise((resolve, reject) => {
       const query = `INSERT INTO ${tableName} (${KEY_COLUMN}, ${VALUE_COLUMN}) 
-       VALUES ('${key}', '${value}') 
-       ON CONFLICT(${KEY_COLUMN}) DO UPDATE SET ${VALUE_COLUMN} = '${value}';`;
-      console.debug(`exec sql: ${query}`);
+       VALUES ('${escapedKey}', '${escapedValue}') 
+       ON CONFLICT(${KEY_COLUMN}) DO UPDATE SET ${VALUE_COLUMN} = '${escapedValue}';`;
+      // console.log(`exec sql: ${query}`);
       this.dbConnection.run(query, (err) => {
-        console.debug(`set to ${tableName}: key=${key}, value=${value}`);
+        // console.log(
+        //   `set to ${tableName}: key=${escapedKey}, value=${escapedValue}`
+        // );
         return err ? reject(err) : resolve();
       });
     });
@@ -125,12 +127,12 @@ class LocalFileStorage {
   async _get(tableName, key, parser) {
     return new Promise((resolve, reject) => {
       const query = `SELECT ${KEY_COLUMN}, ${VALUE_COLUMN} FROM ${tableName} WHERE ${KEY_COLUMN} = '${key}';`;
-      console.debug(`exec sql: ${query}`);
+      // console.log(`exec sql: ${query}`);
       this.dbConnection.get(query, (err, row) => {
         if (err) {
           return reject(err);
         }
-        console.debug(`get from ${tableName}: row=${JSON.stringify(row)}`);
+        // console.log(`get from ${tableName}: row=${JSON.stringify(row)}`);
         if (!row) {
           return resolve(null);
         }
