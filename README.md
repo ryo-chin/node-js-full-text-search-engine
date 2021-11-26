@@ -1,9 +1,11 @@
 # used npm packages
 - kuromoji
 
+## node version manager
+- nvm
+
 ## development
 
-- nodemon
 - prettier
 - jest
 
