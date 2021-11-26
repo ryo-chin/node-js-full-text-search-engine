@@ -1,4 +1,4 @@
-const { buildDefaultIndexer } = require('../test/factory');
+const { buildDefaultIndexer } = require('../config');
 
 test('index', async () => {
   const indexer = await buildDefaultIndexer();

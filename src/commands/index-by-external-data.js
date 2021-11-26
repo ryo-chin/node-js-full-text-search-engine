@@ -1,6 +1,6 @@
 const PerformanceLogger = require('../util/performance-logger');
 const JSONDataLoader = require('../dump/json-data-loader');
-const { buildDefaultIndexer } = require('../test/factory');
+const { buildDefaultIndexer } = require('../config');
 
 async function indexByExternalData({ inputFilePath, outputFilePath, count }) {
   const performanceLogger = new PerformanceLogger();

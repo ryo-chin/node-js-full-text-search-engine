@@ -8,19 +8,24 @@ const { SymbolFilter } = require('../analyzer/char-filters');
 const { v4: uuid } = require('uuid');
 const fs = require('fs-extra');
 
-const buildDefaultAnalyzer = async function buildDefaultAnalyzer() {
+async function buildDefaultAnalyzer() {
   const tokenizer = await Tokenizer.build();
   return new Analyzer(tokenizer, [new SymbolFilter()], [new POSFilter()]);
-};
+}
+
+async function buildStorage(customStoragePath) {
+  const storagePath = customStoragePath || `./tmp/${uuid()}.sqlite`;
+  fs.ensureFileSync(storagePath);
+  return await LocalFileStorage.build(storagePath);
+}
 
 async function buildDefaultIndexer(customStoragePath) {
   const analyzer = await buildDefaultAnalyzer();
-  const storagePath = customStoragePath || `./tmp/${uuid()}.sqlite`;
-  fs.ensureFileSync(storagePath);
-  const storage = await LocalFileStorage.build(storagePath);
+  const storage = await buildStorage(customStoragePath);
   const idGenerator = new UUIDGenerator();
   return new Indexer(analyzer, storage, idGenerator);
 }
 
 exports.buildDefaultAnalyzer = buildDefaultAnalyzer;
+exports.buildStorage = buildStorage;
 exports.buildDefaultIndexer = buildDefaultIndexer;

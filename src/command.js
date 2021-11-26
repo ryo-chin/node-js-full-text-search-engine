@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const indexByExternalData = require('./commands/index-by-external-data.js');
+const search = require('./commands/search.js');
 
 require('yargs')
   .scriptName('search-engine')
@@ -27,6 +28,32 @@ require('yargs')
       await indexByExternalData({
         inputFilePath: argv.inputFilePath,
         outputFilePath: argv.outputFilePath,
+        count: argv.count,
+      });
+    }
+  )
+  .command(
+    'search [input]',
+    'search from index',
+    (yargs) => {
+      yargs.positional('query', {
+        type: 'string',
+        describe: 'search query',
+      });
+      yargs.positional('indexPath', {
+        type: 'string',
+        describe: 'index storage path (sqlite3)',
+      });
+      yargs.positional('count', {
+        type: 'number',
+        default: 1000,
+        describe: 'fetch count',
+      });
+    },
+    async (argv) => {
+      await search({
+        query: argv.query,
+        indexPath: argv.indexPath,
         count: argv.count,
       });
     }
