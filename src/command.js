@@ -23,12 +23,18 @@ require('yargs')
         default: 1000,
         describe: 'index count',
       });
+      yargs.positional('parallel', {
+        type: 'number',
+        default: 4,
+        describe: 'parallel number at flush',
+      });
     },
     async (argv) => {
       await indexByExternalData({
         inputFilePath: argv.inputFilePath,
         outputFilePath: argv.outputFilePath,
         count: argv.count,
+        parallel: argv.parallel,
       });
     }
   )

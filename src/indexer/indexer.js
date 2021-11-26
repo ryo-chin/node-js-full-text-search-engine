@@ -40,14 +40,30 @@ class Indexer {
     return this.storage.saveDocument(doc).then(() => documentId);
   }
 
-  async flush() {
+  async flush(parallelCount) {
     const tempIndexValues = Array.from(this.tempIndexes.values());
-    console.info('flush start tempIndexCount=', tempIndexValues.length);
-    for (const index of tempIndexValues) {
-      const indexed = await this.storage.loadIndex(index.indexId);
-      const mergedIndex = indexed ? indexed.merge(index) : index;
-      await this.storage.saveIndex(mergedIndex);
+    let cursor = 0;
+    const workers = [];
+    const parallel = parallelCount || 1;
+    console.info(
+      `flush start tempIndexCount=${tempIndexValues.length}, parallel=${parallel}`
+    );
+    for (let i = 0; i < parallel; i++) {
+      const worker = new Promise(async (resolve) => {
+        while (cursor < tempIndexValues.length) {
+          const tempIndex = tempIndexValues[cursor];
+          cursor++;
+          const indexed = await this.storage.loadIndex(tempIndex.indexId);
+          const mergedIndex = indexed ? indexed.merge(tempIndex) : tempIndex;
+          await this.storage.saveIndex(mergedIndex);
+        }
+        resolve();
+      });
+      workers.push(worker);
     }
+
+    await Promise.all(workers);
+
     this.tempIndexes.clear();
     console.info('flush end');
   }

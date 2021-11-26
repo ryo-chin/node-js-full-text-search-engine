@@ -16,7 +16,7 @@ class PerformanceLogger {
   end(msg) {
     const now = performance.now();
     const time = now - this.startTime;
-    console.info(`[time=${time.toPrecision(3)}ms] ${msg}`);
+    console.info(`(time=${time}[ms]) ${msg}`);
   }
 }
 
