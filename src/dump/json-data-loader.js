@@ -19,12 +19,17 @@ class JSONDataLoader {
     let parsed = 0;
     let results = [];
 
+    console.log('start read json data...');
     return new Promise((resolve, reject) => {
       try {
+        rl.on('close', () => {
+          console.log('complete read json data!');
+          resolve(results);
+        });
         rl.on('line', (value) => {
           if (parsed >= limit) {
+            console.log(`read json data at limit=${limit}`);
             rl.close();
-            resolve(results);
             return;
           }
           results.push(JSON.parse(value));

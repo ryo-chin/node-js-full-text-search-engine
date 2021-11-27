@@ -11,10 +11,13 @@ async function indexByExternalData({
   const performanceLogger = new PerformanceLogger();
   const indexer = await buildDefaultIndexer(outputFilePath);
   const parser = new JSONDataLoader();
-  const results = await parser.parse(count, inputFilePath);
+  const results = await parser
+    .parse(count, inputFilePath)
+    .catch((e) => console.error(e));
+  console.log(`parsed json data length=${results.length}`);
   for (const [index, res] of results.entries()) {
     await indexer.addDocument(res.title, res.text);
-    console.info(`[${index + 1}] ${res.title}`);
+    console.log(`[${index + 1}] ${res.title}`);
   }
   await indexer.flush(parallel);
   performanceLogger.end('index finish');
