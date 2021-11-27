@@ -48,6 +48,7 @@ require('yargs')
       });
       yargs.positional('indexPath', {
         type: 'string',
+        default: './db/database.sqlite',
         describe: 'index storage path (sqlite3)',
       });
       yargs.positional('count', {
