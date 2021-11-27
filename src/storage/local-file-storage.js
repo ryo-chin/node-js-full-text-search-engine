@@ -1,3 +1,5 @@
+//@ts-check
+
 const InvertedIndex = require('../data/inverted-index');
 const Posting = require('../data/posting');
 const sqlite3 = require('sqlite3').verbose();
@@ -8,6 +10,10 @@ const DOCUMENTS_TABLE_NAME = 'documents';
 const INDEXES_TABLE_NAME = 'inverted_indexes';
 
 class LocalFileStorage {
+  /**
+   * @param {string} [file]
+   * @return {Promise<LocalFileStorage>}
+   */
   static async build(file) {
     const initializeKeyValueTable = (dbCon, tableName) => {
       return new Promise((resolve, reject) => {
@@ -37,6 +43,9 @@ class LocalFileStorage {
     this.dbConnection = dbConnection;
   }
 
+  /**
+   * @param {import("../data/document-data")} document
+   */
   async saveDocument(document) {
     return this._set(
       DOCUMENTS_TABLE_NAME,
@@ -45,10 +54,16 @@ class LocalFileStorage {
     );
   }
 
+  /**
+   * @param {import("../data/document-data")[]} documents
+   */
   async saveDocuments(documents) {
     return this._saveAll(DOCUMENTS_TABLE_NAME, 'documentId', documents);
   }
 
+  /**
+   * @param {{ indexId: any; }} invertedIndex
+   */
   async saveIndex(invertedIndex) {
     return this._set(
       INDEXES_TABLE_NAME,
@@ -57,6 +72,9 @@ class LocalFileStorage {
     );
   }
 
+  /**
+   * @param {any[]} indexes
+   */
   async saveIndexes(indexes) {
     return this._saveAll(INDEXES_TABLE_NAME, 'indexId', indexes);
   }
@@ -73,6 +91,9 @@ class LocalFileStorage {
     return this.loadIndexes([indexId]).then((indexes) => indexes[0]);
   }
 
+  /**
+   * @param {string[]} indexIds
+   */
   async loadIndexes(indexIds) {
     return this._loadAll(INDEXES_TABLE_NAME, indexIds, (body) => {
       return new InvertedIndex(
@@ -93,6 +114,11 @@ class LocalFileStorage {
     });
   }
 
+  /**
+   * @param {string} tableName
+   * @param {string} idPropName
+   * @param {any[]} inputs
+   */
   async _saveAll(tableName, idPropName, inputs) {
     return Promise.all(
       inputs.map((input) => {
@@ -103,16 +129,26 @@ class LocalFileStorage {
     );
   }
 
+  /**
+   * @param {string} tableName
+   * @param {string[]} ids
+   * @param {(arg0: any) => any } [parser]
+   */
   async _loadAll(tableName, ids, parser) {
     return Promise.all(ids.map((id) => this._get(tableName, id, parser)));
   }
 
+  /**
+   * @param {string} tableName
+   * @param {string} key
+   * @param {string} value
+   */
   async _set(tableName, key, value) {
     const escapedKey = this.escape(key);
     const escapedValue = this.escape(value);
     return new Promise((resolve, reject) => {
-      const query = `INSERT INTO ${tableName} (${KEY_COLUMN}, ${VALUE_COLUMN}) 
-       VALUES ('${escapedKey}', '${escapedValue}') 
+      const query = `INSERT INTO ${tableName} (${KEY_COLUMN}, ${VALUE_COLUMN})
+       VALUES ('${escapedKey}', '${escapedValue}')
        ON CONFLICT(${KEY_COLUMN}) DO UPDATE SET ${VALUE_COLUMN} = '${escapedValue}';`;
       // console.log(`exec sql: ${query}`);
       this.dbConnection.run(query, (err) => {
@@ -124,6 +160,11 @@ class LocalFileStorage {
     });
   }
 
+  /**
+   * @param {string} tableName
+   * @param {string} key
+   * @param {(arg0: string) => any} parser
+   */
   async _get(tableName, key, parser) {
     return new Promise((resolve, reject) => {
       const query = `SELECT ${KEY_COLUMN}, ${VALUE_COLUMN} FROM ${tableName} WHERE ${KEY_COLUMN} = '${key}';`;
@@ -143,6 +184,10 @@ class LocalFileStorage {
     });
   }
 
+  /**
+   * @param {string} text
+   * @return {string}
+   */
   escape(text) {
     return text.replace(/'/g, "''");
   }

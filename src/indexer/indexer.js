@@ -1,8 +1,16 @@
+//@ts-check
+
 const InvertedIndex = require('../data/inverted-index');
 const Posting = require('../data/posting');
 const Document = require('../data/document-data');
 
 class Indexer {
+  /**
+   * @param {import("../analyzer/analyzer")} analyzer
+   * @param {import("../storage/local-file-storage")} storage
+   * @param {import("./uuid-generator")} idGenerator
+   * @param {number} [limit]
+   */
   constructor(analyzer, storage, idGenerator, limit) {
     this.analyzer = analyzer;
     this.storage = storage;
@@ -11,6 +19,12 @@ class Indexer {
     this.limit = limit || 100000;
   }
 
+  /**
+   * @param {string} title
+   * @param {string} text
+   *
+   * @return {Promise<string>} documentId
+   */
   async addDocument(title, text) {
     const documentId = this.idGenerator.generate();
     const tokens = this.analyzer.analyze(text);
@@ -40,6 +54,9 @@ class Indexer {
     return this.storage.saveDocument(doc).then(() => documentId);
   }
 
+  /**
+   * @param {number} [parallelCount]
+   */
   async flush(parallelCount) {
     const tempIndexValues = Array.from(this.tempIndexes.values());
     let cursor = 0;
