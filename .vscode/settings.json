@@ -11,5 +11,7 @@
   "files.insertFinalNewline": true,
   "files.trimFinalNewlines": true,
   "files.trimTrailingWhitespace": true,
-  "debug.inlineValues": true
+  "debug.inlineValues": true,
+  "liveshare.shareExternalFiles": false,
+  "liveshare.autoShareTerminals": false
 }
