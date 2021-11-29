@@ -1,10 +1,13 @@
 //@ts-check
+const Analyzer = require('../analyzer/analyzer');
+const DocumentData = require('../data/document-data');
+const LocalFileStorage = require('../storage/local-file-storage');
 const { toSet } = require('../util/collection-util');
 
 class Searcher {
   /**
-   * @param {import("../analyzer/analyzer")} analyzer
-   * @param {import("../storage/local-file-storage")} storage
+   * @param {Analyzer} analyzer
+   * @param {LocalFileStorage} storage
    */
   constructor(analyzer, storage) {
     this.analyzer = analyzer;
@@ -13,9 +16,10 @@ class Searcher {
 
   /**
    * @param {string} query
-   * @return {Promise<import("../data/document-data")[]>}
+   * @param {number | undefined} limit
+   * @return {Promise<SearchResult>}
    */
-  async search(query) {
+  async search(query, limit) {
     const tokens = this.analyzer.analyze(query);
     const targetIndexIds = toSet(tokens.map((token) => token.surface));
     const indexes = await this.storage.loadIndexes(targetIndexIds);
@@ -24,7 +28,23 @@ class Searcher {
         .filter((index) => index)
         .flatMap((index) => index.postings.map((p) => p.documentId))
     );
-    return this.storage.loadDocuments(documentIds);
+    const searchIds = documentIds.slice(0, limit || 10);
+    return this.storage
+      .loadDocuments(searchIds)
+      .then((docs) => new SearchResult(docs, documentIds.length));
+  }
+}
+
+class SearchResult {
+  /**
+   * @param {DocumentData[]} docs
+   * @param {number} count
+   */
+  constructor(docs, count) {
+    /** @type {DocumentData[]} */
+    this.docs = docs;
+    /** @type {number} */
+    this.count = count;
   }
 }
 

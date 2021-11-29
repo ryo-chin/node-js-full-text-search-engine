@@ -1,5 +1,6 @@
 //@ts-check
 
+const DocumentData = require('../data/document-data');
 const InvertedIndex = require('../data/inverted-index');
 const Posting = require('../data/posting');
 const sqlite3 = require('sqlite3').verbose();
@@ -44,7 +45,7 @@ class LocalFileStorage {
   }
 
   /**
-   * @param {import("../data/document-data")} document
+   * @param {DocumentData} document
    */
   async saveDocument(document) {
     return this._set(
@@ -55,14 +56,14 @@ class LocalFileStorage {
   }
 
   /**
-   * @param {import("../data/document-data")[]} documents
+   * @param {DocumentData[]} documents
    */
   async saveDocuments(documents) {
     return this._saveAll(DOCUMENTS_TABLE_NAME, 'documentId', documents);
   }
 
   /**
-   * @param {{ indexId: any; }} invertedIndex
+   * @param {InvertedIndex} invertedIndex
    */
   async saveIndex(invertedIndex) {
     return this._set(
@@ -73,26 +74,39 @@ class LocalFileStorage {
   }
 
   /**
-   * @param {any[]} indexes
+   * @param {InvertedIndex[]} indexes
    */
   async saveIndexes(indexes) {
     return this._saveAll(INDEXES_TABLE_NAME, 'indexId', indexes);
   }
 
+  /**
+   * @param {string} documentId
+   * @return {Promise<DocumentData>}
+   */
   async loadDocument(documentId) {
     return this.loadDocuments([documentId]).then((docs) => docs[0]);
   }
 
+  /**
+   * @param {string[]} documentIds
+   * @return {Promise<DocumentData[]>}
+   */
   async loadDocuments(documentIds) {
     return this._loadAll(DOCUMENTS_TABLE_NAME, documentIds);
   }
 
+  /**
+   * @param {string} indexId
+   * @return {Promise<InvertedIndex>}
+   */
   async loadIndex(indexId) {
     return this.loadIndexes([indexId]).then((indexes) => indexes[0]);
   }
 
   /**
    * @param {string[]} indexIds
+   * @return {Promise<InvertedIndex[]>}
    */
   async loadIndexes(indexIds) {
     return this._loadAll(INDEXES_TABLE_NAME, indexIds, (body) => {
