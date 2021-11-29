@@ -6,8 +6,8 @@
   "scripts": {
     "start": "nodemon src/main.js",
     "test": "jest",
-    "search": " node src/command.js search",
-    "index": " node src/command.js index"
+    "search": "node src/command.js search",
+    "index": "node src/command.js index"
   },
   "repository": {
     "type": "git",

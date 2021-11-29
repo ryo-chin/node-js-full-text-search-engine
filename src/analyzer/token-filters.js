@@ -13,7 +13,7 @@ class TokenFilter {
   }
 }
 
-const skipPos = ['助詞', '助動詞', '記号', '接頭詞'];
+const skipPos = ['接続詞', '助詞', '助動詞', '記号', '接頭詞'];
 class POSFilter extends TokenFilter {
   /**
    * @param {Token} token
