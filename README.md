@@ -8,12 +8,20 @@
   - https://azure.microsoft.com/ja-jp/products/visual-studio-code/
   - プラグインは以下を利用している
     - [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
+      - コードフォーマット
     - [Visual Studio IntelliCode](https://marketplace.visualstudio.com/items?itemName=VisualStudioExptTeam.vscodeintellicode)
+      - 補完など
+    - [Jest Runner](https://marketplace.visualstudio.com/items?itemName=firsttris.vscode-jest-runner)
+      - unit testの実行
 
 ## 手順
 ```shell
 npm install
 ```
+
+## 留意点
+- JavaScriptの型チェックは [vscodeのtype-checking](https://code.visualstudio.com/docs/languages/javascript#_type-checking) を利用している
+  - ファイルの先頭に `@ts-check` をつけると、JSDocを元に型チェックやコード補完を行ってくれる
 
 # 性能検証
 - 文書データとしてWikipediaのデータを利用する
@@ -62,7 +70,7 @@ npm install
     - そのままだとデータ量が多すぎて扱いづらい場合は必要分だけ切り出す
     - 1行1ドキュメントで吐き出されているのでheadコマンドなどで必要行数分を別ファイルに書き出す
     ```shell
-     head -n 100000 db/wikipedia/AA/wiki_00 > db/wikipedia/dump/wikipedia_dump_100000.txt 
+     head -n 100000 db/wikipedia/AA/wiki_00 > db/wikipedia/dump/wikipedia_dump_100000.txt
     ```
 4. 整形したデータをnkfでデコードする（任意）
     - grepコマンドと比較するために行っているだけなので実行は任意
