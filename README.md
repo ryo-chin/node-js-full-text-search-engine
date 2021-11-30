@@ -1,3 +1,14 @@
+# 概要
+
+## 全文検索について
+https://www.notion.so/78044c6dbd8e45d2a367b8989b40f597
+
+## インデックスの流れ
+![インデックスの流れ](./img/index_flow.png)
+
+## 検索の流れ
+![検索の流れ](./img/search_flow.png)
+
 # 開発環境構築
 
 ## 事前準備

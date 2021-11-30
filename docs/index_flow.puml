@@ -1,0 +1,47 @@
+@startuml インデックスの流れ
+
+actor "user"
+participant "Indexer\n(indexer.js)" as indexer
+participant "Analyzer\n(analyzer.js)" as analyzer
+participant "Storage\n(local-file-storage.js)" as storage
+database sqlite3
+
+user -> indexer ++ : 文書データ
+    == 1. 文書をトークン（単語）に分割する ==
+    indexer -> analyzer ++ : analyze()
+        note right: text: 文書データ
+        analyzer -> analyzer: char_filter による前処理
+        analyzer -> analyzer: tokenizerによるトークン化
+        analyzer -> analyzer: token_filter による前処理
+    return tokens
+
+    == 2. 文書をデータベースに保存する\n（同時に文書に対してIDを発行する） ==
+    indexer -> indexer: 文書IDを発行する
+    indexer -> storage ++ : saveDocument()
+    note right: key: 文書ID\nvalue: 文書データ
+        storage -> sqlite3 ++: insert
+        note right: table: documents\ncolumn: key_id=文書ID,body=文書データ
+        return
+    return
+
+    == 3. インデックスを構築する ==
+    indexer -> indexer: tokenの出現回数を算出し、重複tokenを除去
+    note right: key: token, value: token, tokenの出現回数 というMap
+    loop for each tokens
+        indexer -> indexer: インメモリのバッファにインデックスを保持する
+        note right: バッファに一定量溜まったらstorageにsaveすることで\nIO回数を減らし負荷軽減 & 速度改善
+    end
+
+    == 4. インデックスを保存する ==
+    opt バッファに閾値以上のインデックスが溜まっている
+        indexer -> storage ++: saveIndexes
+            storage -> sqlite3 ++: insert
+                note right: table: inverted_indexes\ncolumn: key_id=文書ID,body=インデックスデータ
+            return
+        return
+    end
+    opt 即時で保存したい場合
+        indexer -> indexer: indexer.flush()を呼び出す
+    end
+return
+@enduml

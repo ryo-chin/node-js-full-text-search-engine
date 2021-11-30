@@ -1,0 +1,37 @@
+@startuml 検索の流れ
+
+actor "user"
+participant "Searcher\n(searcher.js)" as searcher
+participant "Analyzer\n(analyzer.js)" as analyzer
+participant "Storage\n(local-file-storage.js)" as storage
+database sqlite3
+
+user -> searcher ++ : 検索キーワード
+    == 1. 検索したいキーワードをトークン（単語）に分割する ==
+    searcher -> analyzer ++ : analyze()
+        note right: text: 検索キーワード
+        analyzer -> analyzer: char_filter による前処理
+        analyzer -> analyzer: tokenizerによるトークン化
+        analyzer -> analyzer: token_filter による前処理
+    return tokens
+
+    == 2. トークンをkeyにインデックスを検索する ==
+    loop for each tokens
+        searcher -> storage ++: loadIndex()
+            storage -> sqlite3 ++: select
+            note right: table: inverted_indexes\ncondition: key_id = token
+            return index
+        return index
+    end
+
+    == 3. インデックスに含まれる文書IDから文書を検索する ==
+    searcher -> searcher: インデックスから文書IDを取り出し、重複を排除する
+    loop for each documentIds
+        searcher -> storage ++: loadDocument()
+            storage -> sqlite3 ++: select
+            note right: table: documents\ncondition: key_id = documentId
+            return document
+        return document
+    end
+return documents
+@enduml
