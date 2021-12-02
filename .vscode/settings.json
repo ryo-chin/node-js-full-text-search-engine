@@ -13,5 +13,6 @@
   "files.trimTrailingWhitespace": true,
   "debug.inlineValues": true,
   "liveshare.shareExternalFiles": false,
-  "liveshare.autoShareTerminals": false
+  "liveshare.autoShareTerminals": false,
+  "liveshare.guestApprovalRequired": true
 }
