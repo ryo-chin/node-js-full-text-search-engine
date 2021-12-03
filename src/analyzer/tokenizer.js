@@ -1,7 +1,8 @@
 //@ts-check
 
 /**
- * interface
+ * TokenizerのInterface用class
+ * {@func Tokenizer.tokenize } を実装した継承classを実装して利用する
  */
 class Tokenizer {
   /**
@@ -18,8 +19,16 @@ const builder = kuromoji.builder({
   dicPath: 'node_modules/kuromoji/dict',
 });
 
+/**
+ * kuromoji(https://www.atilika.com/ja/kuromoji/)を利用したTokenizer class
+ * - 辞書は node_modules/kuromoji/dict に内蔵されている
+ */
 class KuromojiTokenizer extends Tokenizer {
   /**
+   * KuromojiTokenizerをbuildする
+   * - resolve: buildが完了. Tokenizerインスタンスを返す
+   * - reject: Tokenizerのbuildに失敗. errorを返す
+   *
    * @returns {Promise<KuromojiTokenizer>}
    */
   static async build() {
@@ -34,6 +43,7 @@ class KuromojiTokenizer extends Tokenizer {
   }
 
   /**
+   * コンストラクタ
    * @param {kuromoji.Tokenizer<kuromoji.IpadicFeatures>} tokenizer
    */
   constructor(tokenizer) {
@@ -42,6 +52,9 @@ class KuromojiTokenizer extends Tokenizer {
   }
 
   /**
+   * KurmojiTokenizerを利用してテキストをトークンに分割する
+   *
+   * @override
    * @param {string} text
    * @return {Token[]}
    */

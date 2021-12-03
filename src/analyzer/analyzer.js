@@ -4,8 +4,15 @@ const { CharFilter } = require('./char-filters');
 const { TokenFilter } = require('./token-filters');
 const { Tokenizer } = require('./tokenizer');
 
+/**
+ * 文書をトークン化するためのAnalyzer
+ * - charFiltersで解析の前処理を行う. 例: 文書の正規化など
+ * - tokenizerで文書のトークン化を行う
+ * - tokenFilterで解析の後処理を行う. 例: 不要なトークンの除去など
+ */
 class Analyzer {
   /**
+   * コンストラクタ
    * @param {Tokenizer} tokenizer
    * @param {CharFilter[]} charFilters
    * @param {TokenFilter[]} tokenFilters
@@ -17,26 +24,21 @@ class Analyzer {
   }
 
   /**
+   * 文書の解析を行い、トークンに分割する
+   * - charFiltersで解析の前処理を行う. 例: 文書の正規化など
+   * - tokenizerで文書のトークン化を行う
+   * - tokenFilterで解析の後処理を行う. 例: 不要なトークンの除去など
    * @param {string} text
    * @return {Token[]}
    */
   analyze(text) {
-    const filteredText = this.charFilters.reduce((text, filter) => {
-      return filter.filter(text);
+    const filteredText = this.charFilters.reduce((text, charFilter) => {
+      return charFilter.filter(text);
     }, text);
     const tokens = this.tokenizer.tokenize(filteredText);
-    return tokens
-      .map((token) => {
-        let filtered = token;
-        this.tokenFilters.forEach((filter) => {
-          if (!token) {
-            return;
-          }
-          filtered = filter.filter(token);
-        });
-        return filtered;
-      })
-      .filter((token) => !!token);
+    return this.tokenFilters.reduce((tokens, tokenFilter) => {
+      return tokens.filter((token) => tokenFilter.filter(token));
+    }, tokens);
   }
 }
 

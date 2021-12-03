@@ -1,36 +1,44 @@
 const Analyzer = require('./analyzer.js');
 const Tokenizer = require('./tokenizer.js');
-const tokenFilters = require('./token-filters.js');
+const { POSFilter } = require('./token-filters.js');
+const { SymbolFilter } = require('./char-filters.js');
 
-test('analyzer with no filter', async () => {
-  const tokenizer = await Tokenizer.build();
-  const analyzer = new Analyzer(tokenizer, [], []);
-  const tokens = analyzer.analyze('吾輩は猫である。名前はまだ無い。');
-  expect(tokens.map((t) => t.surface)).toEqual([
-    '吾輩',
-    'は',
-    '猫',
-    'で',
-    'ある',
-    '。',
-    '名前',
-    'は',
-    'まだ',
-    '無い',
-    '。',
-  ]);
-});
+describe('analyzer', () => {
+  test('analyzer with no filter', async () => {
+    const tokenizer = await Tokenizer.build();
+    const analyzer = new Analyzer(tokenizer, [], []);
+    const tokens = analyzer.analyze(
+      '主な利用言語はTypeScript, JavaScriptです。'
+    );
+    expect(tokens.map((t) => t.surface)).toEqual([
+      '主',
+      'な',
+      '利用',
+      '言語',
+      'は',
+      'TypeScript',
+      ',',
+      ' ',
+      'JavaScript',
+      'です',
+      '。',
+    ]);
+  });
 
-test('analyzer with token filter', async () => {
-  const posFilter = new tokenFilters.POSFilter();
-  const tokenizer = await Tokenizer.build();
-  const analyzer = new Analyzer(tokenizer, [], [posFilter]);
-  const tokens = analyzer.analyze('吾輩は猫である。名前はまだ無い。');
-  expect(tokens.map((t) => t.surface)).toEqual([
-    '吾輩',
-    '猫',
-    '名前',
-    'まだ',
-    '無い',
-  ]);
+  test('analyzer with filter', async () => {
+    const symbolFilter = new SymbolFilter();
+    const posFilter = new POSFilter();
+    const tokenizer = await Tokenizer.build();
+    const analyzer = new Analyzer(tokenizer, [symbolFilter], [posFilter]);
+    const tokens = analyzer.analyze(
+      '主な利用言語はTypeScript, JavaScriptです。'
+    );
+    expect(tokens.map((t) => t.surface)).toEqual([
+      '主',
+      '利用',
+      '言語',
+      'TypeScript',
+      'JavaScript',
+    ]);
+  });
 });
