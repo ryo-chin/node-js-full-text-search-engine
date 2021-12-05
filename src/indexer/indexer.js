@@ -48,6 +48,8 @@ class Indexer {
     // FIXME: 文書をストレージに保存する
 
     // FIXME: トークンからインデックスを作成しバッファに一時保存する
+    // TIPS: バッファ(this.tempIndexes)はMapなので、Map.getやMap.setで値の出し入れができる
+    // TIPS: インデックス(InvertedIndex)はaddPostingという関数で文書IDを追加することができる
 
     return documentId;
   }
@@ -62,12 +64,13 @@ class Indexer {
 
     // FIXME: バッファから取り出したインデックスをストレージに保存する
 
-    // FIXME: すでにストレージに保存されているインデックスはマージする
+    // FIXME: すでにストレージに保存されているインデックスとマージする
+    // TIPS: インデックスのマージはInvertedIndex.mergeという関数で行うことができる
+    // TIPS: 非同期処理(Promise)を配列で処理するときは、 for (const [index, value] of array.entries()) {...} または Promise.all を利用すると良い
 
-    // TIPS: 以下のように標準出力+キャリッジリターン(\r)で実行件数を出力すると、一行でインデックス保存件数の進捗を出力できるので余力があればやってみる.
-    //       process.stdout.write(`flush complete ${処理しているインデックス番号}/${tempIndexCount}\r`);
-    //       ループの最後に改行することで後続の出力に上書きされないようにすることも忘れずに
-    //       process.stdout.write('\n')
+    // ADVANCED: 以下のように標準出力+キャリッジリターン(\r)で実行件数を出力すると、一行でインデックス保存件数の進捗を出力できるので余力があればやってみる.
+    //           process.stdout.write(`flush complete ${処理した件数}/${tempIndexCount}\r`);
+    //           ループの最後に改行することで後続の出力に上書きされないようにすることも忘れずに
 
     this.tempIndexes.clear();
   }

@@ -10,7 +10,7 @@ class Posting {
    * @param {string} documentId 文書ID
    * @param {number} useCount 当該トークンが利用されている回数
    */
-  constructor(documentId, useCount) {
+  constructor(documentId, useCount = 0) {
     this.documentId = documentId;
     this.useCount = useCount;
   }
