@@ -1,4 +1,5 @@
 .idea
 node_modules
-db/
+db/wikipedia
+db/database.sqlite
 tmp
