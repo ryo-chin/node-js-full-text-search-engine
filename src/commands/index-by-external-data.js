@@ -26,7 +26,7 @@ async function indexByExternalData({
     .catch((e) => console.error(e));
   console.info(`parsed json data length=${results.length}`);
   for (const [index, res] of results.entries()) {
-    await indexer.addDocument(res.title, res.text);
+    await indexer.indexDocument(res.title, res.text);
     console.info(`[${index + 1}] ${res.title}`);
   }
   await indexer.flush(parallel);

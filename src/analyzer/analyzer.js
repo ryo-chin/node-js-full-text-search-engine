@@ -17,7 +17,7 @@ class Analyzer {
    * @param {CharFilter[]} charFilters
    * @param {TokenFilter[]} tokenFilters
    */
-  constructor(tokenizer, charFilters, tokenFilters) {
+  constructor(tokenizer, charFilters = [], tokenFilters = []) {
     this.tokenizer = tokenizer;
     this.charFilters = charFilters;
     this.tokenFilters = tokenFilters;

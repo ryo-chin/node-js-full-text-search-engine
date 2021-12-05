@@ -1,27 +1,37 @@
 //@ts-check
 
+const Posting = require('./posting');
+
+/**
+ * 転置インデックスのデータclass
+ * - indexIdはトークンの表層系(surface)を用いる
+ * - 当該トークンを含んでいた文書情報をポスティングリスト(postings)として保有する
+ * - トークン自体の情報も保有する
+ */
 class InvertedIndex {
   /**
    * @param {string} indexId
+   * @param {Posting[]} postings
    * @param {Token} token
-   * @param {any[]} [postings]
    */
-  constructor(indexId, token, postings) {
+  constructor(indexId, postings, token) {
     this.indexId = indexId;
+    this.postings = postings;
     this.token = token;
-    this.postings = postings || [];
   }
 
   /**
-   * @param {import("./posting")} posting
+   * ポスティングを追加する
+   * @param {Posting} posting
    */
   addPosting(posting) {
     this.postings.push(posting);
   }
 
   /**
+   * インデックスをマージする
    * @param {InvertedIndex} otherIndex
-   * @return {InvertedIndex}
+   * @return {InvertedIndex} ポスティングリストの情報をマージしたインデックス
    */
   merge(otherIndex) {
     otherIndex.postings.forEach((pos) => this.addPosting(pos));

@@ -29,10 +29,10 @@ async function buildStorage(customStoragePath) {
 
 /**
  * 標準的なIndexerを構築するためのfactory
- * @param {string} customStoragePath
+ * @param {string | null} customStoragePath
  * @returns {Promise<Indexer>}
  */
-async function buildDefaultIndexer(customStoragePath) {
+async function buildDefaultIndexer(customStoragePath = null) {
   const analyzer = await buildDefaultAnalyzer();
   const storage = await buildStorage(customStoragePath);
   const idGenerator = new UUIDGenerator();

@@ -1,30 +1,82 @@
 const { buildDefaultIndexer } = require('../config');
+const LocalFileStorage = require('../storage/local-file-storage');
+const Indexer = require('./indexer');
 
-test('index', async () => {
-  const indexer = await buildDefaultIndexer();
-  const storage = indexer.storage;
+describe('index', () => {
+  /**
+   * テストデータ
+   */
+  const documents = [
+    {
+      title: '求人1',
+      text: 'メイン事業にて構築しているWebアプリケーションのフロントエンド開発業務を担当していただきたいと思っています。主な利用言語はTypeScript, JavaScriptです。',
+    },
+    {
+      title: '求人2',
+      text: 'サービス保守運用を行うWebアプリケーションの開発に従事していただきたいです。主な利用言語はGolang, JavaScriptです。',
+    },
+  ];
 
-  const title = '全文検索';
-  const input =
-    '全文検索とは、コンピュータにおいて、複数の文書（ファイル）から特定の文字列を検索すること。「ファイル名検索」や「単一ファイル内の文字列検索」と異なり、「複数文書にまたがって、文書に含まれる全文を対象とした検索」という意味で使用される。';
-  const documentId = await indexer.addDocument(title, input);
-  await indexer.flush();
+  /** @type {Indexer} */
+  let indexer;
+  /** @type {LocalFileStorage} */
+  let storage;
 
-  const document = await storage.loadDocument(documentId);
-  expect(document.title).toEqual(title);
-  expect(document.text).toEqual(input);
-  const index = await storage.loadIndex('全文');
-  expect(index.postings).toEqual([{ documentId: documentId, useCount: 2 }]);
+  /**
+   * 各test実行前の準備処理
+   * - Indexerの構築
+   * - Storageの構築
+   */
+  beforeEach(async () => {
+    indexer = await buildDefaultIndexer();
+    storage = indexer.storage;
+  });
 
-  // 他ドキュメントをインデックスした際、既存Indexに情報が追加されること
-  const otherTitle = '転置インデックス';
-  const otherInput =
-    '全文検索用のインデックスには様々な形式があるが、最も一般的なものは単語と、単語を含む文書ファイルのIDとで構成された可変長のレコードを持ったテーブルで、転置ファイル（英: inverted file、転置インデックスとも）と呼ばれるものである。';
-  const otherDocumentId = await indexer.addDocument(otherTitle, otherInput);
-  await indexer.flush();
-  const sameIndex = await storage.loadIndex(['全文']);
-  expect(sameIndex.postings).toEqual([
-    { documentId: documentId, useCount: 2 },
-    { documentId: otherDocumentId, useCount: 1 },
-  ]);
+  test('文書が保存されること', async () => {
+    const input = documents[0];
+    const title = input.title;
+    const text = input.text;
+
+    const documentId = await indexer.indexDocument(title, text);
+
+    const document = await storage.loadDocument(documentId);
+    expect(document.title).toEqual(title);
+    expect(document.text).toEqual(text);
+  });
+
+  test('インデックスが保存されること', async () => {
+    const input = documents[0];
+    const title = input.title;
+    const text = input.text;
+    const token = 'JavaScript';
+
+    const documentId = await indexer.indexDocument(title, text);
+    await indexer.flush();
+
+    const index = await storage.loadIndex(token);
+    expect(index.indexId).toEqual(token);
+    expect(index.postings.map((posting) => posting.documentId)).toEqual([
+      documentId,
+    ]);
+  });
+
+  test('既存のインデックスとマージされて保存されること', async () => {
+    const input = documents[0];
+    const title = input.title;
+    const text = input.text;
+    const otherInput = documents[1];
+    const otherTitle = otherInput.title;
+    const otherText = otherInput.text;
+    const token = 'JavaScript';
+
+    const documentId = await indexer.indexDocument(title, text);
+    const otherDocumentId = await indexer.indexDocument(otherTitle, otherText);
+    await indexer.flush();
+
+    const sameIndex = await storage.loadIndex([token]);
+    expect(sameIndex.postings.map((posting) => posting.documentId)).toEqual([
+      documentId,
+      otherDocumentId,
+    ]);
+  });
 });

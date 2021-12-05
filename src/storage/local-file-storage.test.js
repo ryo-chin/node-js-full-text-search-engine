@@ -9,7 +9,10 @@ test('local-file-storage', async () => {
   const text = '本文';
   const inputDocument = new DocumentData(documentId, title, text, 1);
   await storage.saveDocuments([inputDocument]);
-  const inputIndex = new InvertedIndex(text, { surface: text, pos: '名詞' });
+  const inputIndex = new InvertedIndex(text, [], {
+    surface: text,
+    pos: '名詞',
+  });
   await storage.saveIndexes([inputIndex]);
 
   const doc = await storage.loadDocuments([documentId]);

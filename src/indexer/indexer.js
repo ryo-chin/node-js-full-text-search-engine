@@ -40,7 +40,7 @@ class Indexer {
    * @param {string} text
    * @return {Promise<string>} documentId
    */
-  async addDocument(title, text) {
+  async indexDocument(title, text) {
     const documentId = this.idGenerator.generate();
     const tokens = this.analyzer.analyze(text);
 
@@ -58,7 +58,7 @@ class Indexer {
       if (!this.tempIndexes.get(token.surface)) {
         this.tempIndexes.set(
           token.surface,
-          new InvertedIndex(token.surface, token)
+          new InvertedIndex(token.surface, [], token)
         );
       }
       // インデックスに対して文書情報（Posting）をListで持たせる

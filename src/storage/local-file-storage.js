@@ -112,10 +112,10 @@ class LocalFileStorage {
     return this._loadAll(INDEXES_TABLE_NAME, indexIds, (body) => {
       return new InvertedIndex(
         body.indexId,
-        body.token,
         body.postings.map(
           (posting) => new Posting(posting.documentId, posting.useCount)
-        )
+        ),
+        body.token
       );
     });
   }
