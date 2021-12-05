@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const readline = require('readline');
+const { ellipsis } = require('../util/string-util');
 
 /**
  * 文書データJSONをファイルからロードするclass
@@ -39,7 +40,16 @@ class JSONDataLoader {
             rl.close();
             return;
           }
-          results.push(JSON.parse(value));
+          try {
+            results.push(JSON.parse(value));
+          } catch (e) {
+            // まれにパースできないことがあるのでエラーログだけ出してskipする
+            console.error(
+              `skip read by parse error [row=${
+                results.length
+              }, value=${ellipsis(value, 100)}]`
+            );
+          }
         });
         console.info('read document data start');
       } catch (e) {
