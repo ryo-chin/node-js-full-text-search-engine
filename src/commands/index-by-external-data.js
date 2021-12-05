@@ -20,17 +20,16 @@ async function indexByExternalData({
   const [_, time] = await execAsyncWithPerformance(async () => {
     const indexer = await buildDefaultIndexer(outputFilePath);
     const parser = new JSONDataLoader();
-    const results = await parser
-      .parse(count, inputFilePath)
-      .catch((e) => console.error(e));
-    console.info(`parsed json data length=${results.length}`);
+    const results = await parser.parse(count, inputFilePath);
+    console.log('index document start');
     for (const [index, res] of results.entries()) {
       await indexer.indexDocument(res.title, res.text);
       console.info(`[${index + 1}] ${res.title}`);
     }
+    console.log('index document complete');
     await indexer.flush(parallel);
   });
-  console.info(`index finish (${time.toPrecision(3)}[ms])`);
+  console.info(`process time=${time.toPrecision(3)}[ms]`);
 }
 
 module.exports = indexByExternalData;

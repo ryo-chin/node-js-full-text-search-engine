@@ -122,7 +122,6 @@ class Indexer {
 
     // バッファをクリアする
     this.tempIndexes.clear();
-    console.info('flush end');
   }
 }
 

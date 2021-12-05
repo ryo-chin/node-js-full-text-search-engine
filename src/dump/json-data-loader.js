@@ -1,40 +1,47 @@
+//@ts-check
+
 const fs = require('fs');
 const readline = require('readline');
 
+/**
+ * 文書データJSONをファイルからロードするclass
+ * - MB, GBサイズのファイルからも読み込めるようにStreamで必要件数(limit)分だけ読み出せるようになっている
+ * - 以下の形式のJSONDataを読み込むことを想定している. WikipediaのXMLをWikiExtractorで読み込んだ際のJSON
+ * {
+ *   id: ,
+ *   revid: ,
+ *   url: ,
+ *   title: ,
+ *   text: ,
+ * }
+ */
 class JSONDataLoader {
   /**
-   * result json
-   * {
-   *   id: ,
-   *   revid: ,
-   *   url: ,
-   *   title: ,
-   *   text: ,
-   * }
+   * ファイルからJSONを読み込み、パースする
+   * @param {number} limit
+   * @param {string} inputFile
+   * @return {Promise<any[]>}
    */
   async parse(limit, inputFile) {
     const rs = fs.createReadStream(inputFile);
     const rl = readline.createInterface(rs);
 
-    let parsed = 0;
     let results = [];
 
-    console.info('start read json data...');
     return new Promise((resolve, reject) => {
       try {
         rl.on('close', () => {
-          console.info('complete read json data!');
+          console.info('read document data complete');
           resolve(results);
         });
         rl.on('line', (value) => {
-          if (parsed >= limit) {
-            console.info(`read json data at limit=${limit}`);
+          if (results.length === limit) {
             rl.close();
             return;
           }
           results.push(JSON.parse(value));
-          parsed = ++parsed;
         });
+        console.info('read document data start');
       } catch (e) {
         reject(e);
       }
@@ -43,6 +50,12 @@ class JSONDataLoader {
     });
   }
 
+  /**
+   * 入力ファイル(inputFile)から出力ファイル(outputFile)へ指定行数(limit)コピーする
+   * @param {number} limit
+   * @param {string} inputFile
+   * @param {string} outputFile
+   */
   async dump(limit, inputFile, outputFile) {
     const rs = fs.createReadStream(inputFile);
     const ws = fs.createWriteStream(outputFile);
