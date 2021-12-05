@@ -31,12 +31,22 @@ class Searcher {
 
     // FIXME: 分割したトークンからsurface取り出し、ストレージからインデックスを取得する. surfaceの重複を排除しておいた方がIOが減るので効率的.
     // TIPS: toSet(array) というutil関数を使うとstring配列から重複を排除した配列を取得できる
+    const indexes = await this.storage.loadIndexes(
+      toSet(tokens.map((token) => token.surface))
+    );
 
     // FIXME: 取得したインデックスから文書IDを取り出し、ストレージから文書を取得する. 事前に文書IDの重複を排除しておかないと同じ文書が複数取れてしまうかも...
-    // FIXME: 取得した文書をSearchResultに詰める
+    const documentIds = toSet(
+      indexes
+        .flatMap((index) => index.postings)
+        .map((posting) => posting.documentId)
+    );
     // FIXME: limitで指定された数だけ文書をストレージから取得するようにする
-
-    return new SearchResult([], 0);
+    const documents = await this.storage.loadDocuments(
+      documentIds.slice(0, limit)
+    );
+    // FIXME: 取得した文書をSearchResultに詰める
+    return new SearchResult(documents, documentIds.length);
   }
 }
 

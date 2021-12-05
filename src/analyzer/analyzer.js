@@ -32,8 +32,13 @@ class Analyzer {
    * @return {Token[]}
    */
   analyze(text) {
-    const tokens = []; // FIXME: インプットをトークンに分割
-    return tokens; // FIXME: charFiltersで前処理、tokenFiltersで後処理を行う
+    const filteredText = this.charFilters.reduce((text, charFilter) => {
+      return charFilter.filter(text);
+    }, text);
+    const tokens = this.tokenizer.tokenize(filteredText); // FIXME: インプットをトークンに分割
+    return this.tokenFilters.reduce((tokens, tokenFilter) => {
+      return tokens.filter((token) => tokenFilter.filter(token));
+    }, tokens); // FIXME: charFiltersで前処理、tokenFiltersで後処理を行う
   }
 }
 

@@ -6,6 +6,7 @@ const Document = require('../data/document-data');
 const Analyzer = require('../analyzer/analyzer');
 const LocalFileStorage = require('../storage/local-file-storage');
 const UUIDGenerator = require('./uuid-generator');
+const DocumentData = require('../data/document-data');
 
 /**
  * 文書からインデックスを作成するためのclass
@@ -46,10 +47,22 @@ class Indexer {
     const tokens = this.analyzer.analyze(text);
 
     // FIXME: 文書をストレージに保存する
+    this.storage.saveDocument(new DocumentData(documentId, title, text, 0));
 
     // FIXME: トークンからインデックスを作成しバッファに一時保存する
     // TIPS: バッファ(this.tempIndexes)はMapなので、Map.getやMap.setで値の出し入れができる
-    // TIPS: インデックス(InvertedIndex)はaddPostingという関数で文書IDを追加することができる
+    tokens.forEach((token) => {
+      if (!this.tempIndexes.get(token.surface)) {
+        this.tempIndexes.set(
+          token.surface,
+          new InvertedIndex(token.surface, [], token)
+        );
+      }
+      // TIPS: インデックス(InvertedIndex)はaddPostingという関数で文書IDを追加することができる
+      this.tempIndexes
+        .get(token.surface)
+        .addPosting(new Posting(documentId, 0));
+    });
 
     return documentId;
   }
@@ -63,17 +76,42 @@ class Indexer {
     console.info(`flush start tempIndexCount=${tempIndexCount}`);
 
     // FIXME: バッファから取り出したインデックスをストレージに保存する
+    for (const [index, tempIndex] of tempIndexValues.entries()) {
+      // FIXME: すでにストレージに保存されているインデックスとマージする
+      const savedIndex = await this.storage.loadIndex(tempIndex.indexId);
+      await this.storage.saveIndex(
+          savedIndex ? savedIndex.merge(tempIndex) : tempIndex
+      );
+      // ADVANCED: 以下のように標準出力+キャリッジリターン(\r)で実行件数を出力すると、一行でインデックス保存件数の進捗を出力できるので余力があればやってみる.
+      //           process.stdout.write(`flush complete ${処理した件数}/${tempIndexCount}\r`);
+      //           ループの最後に改行することで後続の出力に上書きされないようにすることも忘れずに
+      process.stdout.write(`flush complete ${index}/${tempIndexCount}\r`);
+    }
+    process.stdout.write(
+        `flush complete ${tempIndexCount}/${tempIndexCount}\n`
+    );
 
-    // FIXME: すでにストレージに保存されているインデックスとマージする
-    // TIPS: インデックスのマージはInvertedIndex.mergeという関数で行うことができる
-    // TIPS: 非同期処理(Promise)を配列で処理するときは、 for (const [index, value] of array.entries()) {...} または Promise.all を利用すると良い
-
-    // ADVANCED: 以下のように標準出力+キャリッジリターン(\r)で実行件数を出力すると、一行でインデックス保存件数の進捗を出力できるので余力があればやってみる.
-    //           process.stdout.write(`flush complete ${処理した件数}/${tempIndexCount}\r`);
-    //           ループの最後に改行することで後続の出力に上書きされないようにすることも忘れずに
-
-    this.tempIndexes.clear();
-  }
+    // [別解] Promise.allを使った例
+    // // FIXME: バッファから取り出したインデックスをストレージに保存する
+    // let savedCount = 0;
+    // await Promise.all(
+    //   tempIndexValues.map(async (tempIndex, index) => {
+    //     // FIXME: すでにストレージに保存されているインデックスとマージする
+    //     // TIPS: インデックスのマージはInvertedIndex.mergeという関数で行うことができる
+    //     // TIPS: 非同期処理(Promise)を配列で処理するときは、 for (const [index, value] of array.entries()) {...} または Promise.all を利用すると良い
+    //     const savedIndex = await this.storage.loadIndex(tempIndex.indexId);
+    //     await this.storage.saveIndex(
+    //       savedIndex ? savedIndex.merge(tempIndex) : tempIndex
+    //     );
+    //     // ADVANCED: 以下のように標準出力+キャリッジリターン(\r)で実行件数を出力すると、一行でインデックス保存件数の進捗を出力できるので余力があればやってみる.
+    //     //           process.stdout.write(`flush complete ${処理した件数}/${tempIndexCount}\r`);
+    //     //           ループの最後に改行することで後続の出力に上書きされないようにすることも忘れずに
+    //     savedCount++;
+    //     process.stdout.write(
+    //       `flush complete ${savedCount}/${tempIndexCount}\r`
+    //     );
+    //   })
+    // ).finally(() => process.stdout.write('\n'));  }
 }
 
 module.exports = Indexer;
