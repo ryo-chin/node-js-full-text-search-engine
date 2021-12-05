@@ -3,12 +3,22 @@
 const indexByExternalData = require('./commands/index-by-external-data.js');
 const search = require('./commands/search.js');
 
+/**
+ * yargsを利用したコマンド群
+ * ref. https://github.com/yargs/yargs
+ */
 require('yargs')
   .scriptName('search-engine')
   .usage('$0 <cmd> [args]')
+  /**
+   * インデックスを実行するためのコマンド
+   */
   .command(
-    'index [input]',
+    // コマンド
+    'index',
+    // 説明
     'index from wikipedia dump data',
+    // 引数オプション
     (yargs) => {
       yargs.positional('inputFilePath', {
         type: 'string',
@@ -29,24 +39,31 @@ require('yargs')
         describe: 'parallel number at flush',
       });
     },
-    async (argv) => {
+    // 処理
+    async (args) => {
       await indexByExternalData({
-        inputFilePath: argv.inputFilePath,
-        outputFilePath: argv.outputFilePath,
-        count: argv.count,
-        parallel: argv.parallel,
+        inputFilePath: args.inputFilePath,
+        outputFilePath: args.outputFilePath,
+        count: args.count,
+        parallel: args.parallel,
       });
     }
   )
+  /**
+   * 検索するためのコマンド
+   */
   .command(
-    'search [input]',
+    // コマンド
+    'search',
+    // 説明
     'search from index',
+    // 引数オプション
     (yargs) => {
       yargs.positional('query', {
         type: 'string',
         describe: 'search query',
       });
-      yargs.positional('indexPath', {
+      yargs.positional('storagePath', {
         type: 'string',
         default: './db/database.sqlite',
         describe: 'index storage path (sqlite3)',
@@ -57,11 +74,12 @@ require('yargs')
         describe: 'fetch count',
       });
     },
-    async (argv) => {
+    // 処理
+    async (args) => {
       await search({
-        query: argv.query,
-        indexPath: argv.indexPath,
-        count: argv.count,
+        query: args.query,
+        storagePath: args.storagePath,
+        count: args.count,
       });
     }
   )

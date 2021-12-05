@@ -87,15 +87,16 @@ class Indexer {
     let cursor = 0;
     const workers = [];
     const parallel = parallelCount || 1;
+    const tempIndexCount = tempIndexValues.length;
     console.info(
-      `flush start tempIndexCount=${tempIndexValues.length}, parallel=${parallel}`
+      `flush start tempIndexCount=${tempIndexCount}, parallel=${parallel}`
     );
 
     // 指定された並行数分worker(Promise)を用意する
     for (let i = 0; i < parallel; i++) {
       const worker = new Promise(async (resolve) => {
         // 処理中のインデックスを示すcursorをincrementしながらインデックスを保存していく
-        while (cursor < tempIndexValues.length) {
+        while (cursor < tempIndexCount) {
           const tempIndex = tempIndexValues[cursor];
           // 対象データを取り出したら非同期処理を始める前にcursorをincrementしておく.
           // JavaScriptはシングルスレッドで実行されるので非同期処理を始める前にincrementすることでスレッドセーフにcursorをincrementできる(cursor++をawaitの後に移動してみるとログ出力してみると挙動がよくわかる)
@@ -105,6 +106,13 @@ class Indexer {
           const indexed = await this.storage.loadIndex(tempIndex.indexId);
           const mergedIndex = indexed ? indexed.merge(tempIndex) : tempIndex;
           await this.storage.saveIndex(mergedIndex);
+
+          // 進捗を出力(標準出力+キャリッジリターンで1行に進捗を出力するようにし、ループの最後に改行を出力)
+          const progress =
+            cursor < tempIndexCount
+              ? `flush complete ${cursor}/${tempIndexCount}\r`
+              : '\n';
+          process.stdout.write(progress);
         }
         resolve();
       });
