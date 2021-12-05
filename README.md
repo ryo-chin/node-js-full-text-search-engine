@@ -45,7 +45,13 @@ npm install
   - grep コマンド
   - sqlite に LIKE クエリ
 
-## Wikipedia ダンプデータの用意方法
+## テストデータ
+- 10000件分のテストデータは以下からダウンロード可能
+  - https://github.com/ryo-chin/node-js-full-text-search-engine/blob/dump_data/db/dump/wikipedia_dump.txt
+
+それ以上のデータを用意したい場合は後述の手順で行う
+
+## Wikipedia ダンプデータの作成方法
 
 ### 事前準備
 
