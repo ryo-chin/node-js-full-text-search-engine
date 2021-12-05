@@ -28,19 +28,15 @@ class Searcher {
    */
   async search(query, limit = 10) {
     const tokens = this.analyzer.analyze(query);
-    // トークンの重複を排除して、インデックスを取得
-    const targetIndexIds = toSet(tokens.map((token) => token.surface));
-    const indexes = await this.storage.loadIndexes(targetIndexIds);
-    // 文書IDの重複を排除して文書を取得
-    const documentIds = toSet(
-      indexes
-        .filter((index) => index)
-        .flatMap((index) => index.postings.map((p) => p.documentId))
-    );
-    const searchIds = documentIds.slice(0, limit || 10);
-    return this.storage
-      .loadDocuments(searchIds)
-      .then((docs) => new SearchResult(docs, documentIds.length));
+
+    // FIXME: 分割したトークンからsurface取り出し、ストレージからインデックスを取得する. surfaceの重複を排除しておいた方がIOが減るので効率的.
+    // TIPS: toSet(array) というutil関数を使うとstring配列から重複を排除した配列を取得できる
+
+    // FIXME: 取得したインデックスから文書IDを取り出し、ストレージから文書を取得する. 事前に文書IDの重複を排除しておかないと同じ文書が複数取れてしまうかも...
+    // FIXME: 取得した文書をSearchResultに詰める
+    // FIXME: limitで指定された数だけ文書をストレージから取得するようにする
+
+    return new SearchResult([], 0);
   }
 }
 

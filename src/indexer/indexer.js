@@ -45,82 +45,30 @@ class Indexer {
     const documentId = this.idGenerator.generate();
     const tokens = this.analyzer.analyze(text);
 
-    // tokenの重複を取り除きつつ、各tokenの出現回数を算出する
-    const tokenWithUseCounts = tokens.reduce((tokens, token) => {
-      if (!tokens.get(token.surface)) {
-        tokens.set(token.surface, { ...token, useCount: 0 });
-      }
-      ++tokens.get(token.surface).useCount;
-      return tokens;
-    }, new Map());
+    // FIXME: 文書をストレージに保存する
 
-    // tokenからインデックスを作成し、インメモリバッファに保存する
-    tokenWithUseCounts.forEach((token) => {
-      if (!this.tempIndexes.get(token.surface)) {
-        this.tempIndexes.set(
-          token.surface,
-          new InvertedIndex(token.surface, [], token)
-        );
-      }
-      // インデックスに対して文書情報（Posting）をListで持たせる
-      const posting = new Posting(documentId, token.useCount);
-      this.tempIndexes.get(token.surface).addPosting(posting);
-    });
+    // FIXME: トークンからインデックスを作成しバッファに一時保存する
 
-    // バッファ内のインデックス数が閾値を超えていたらstorageへ保存（flush）する
-    if (this.tempIndexes.size > this.limit) {
-      await this.flush();
-    }
-
-    // 文書の保存に成功したら文書IDを返す
-    const doc = new Document(documentId, title, text, tokens.length);
-    return this.storage.saveDocument(doc).then(() => documentId);
+    return documentId;
   }
 
   /**
    * インデックスをstorageに保存する
-   * - 指定された並行数(parallelCount)でインデックスの保存を行う
-   * - sqlite3をstorageに使っている場合、insertが並列処理に対応してないようなのであまり意味はない...
-   * @param {number} [parallelCount]
    */
-  async flush(parallelCount) {
+  async flush() {
     const tempIndexValues = Array.from(this.tempIndexes.values());
-    let cursor = 0;
-    const workers = [];
-    const parallel = parallelCount || 1;
     const tempIndexCount = tempIndexValues.length;
-    console.info(
-      `flush start tempIndexCount=${tempIndexCount}, parallel=${parallel}`
-    );
+    console.info(`flush start tempIndexCount=${tempIndexCount}`);
 
-    // 指定された並行数分worker(Promise)を用意する
-    for (let i = 0; i < parallel; i++) {
-      const worker = new Promise(async (resolve) => {
-        // 処理中のインデックスを示すcursorをincrementしながらインデックスを保存していく
-        while (cursor < tempIndexCount) {
-          const tempIndex = tempIndexValues[cursor];
-          // 対象データを取り出したら非同期処理を始める前にcursorをincrementしておく.
-          // JavaScriptはシングルスレッドで実行されるので非同期処理を始める前にincrementすることでスレッドセーフにcursorをincrementできる(cursor++をawaitの後に移動してみるとログ出力してみると挙動がよくわかる)
-          cursor++;
+    // FIXME: バッファから取り出したインデックスをストレージに保存する
 
-          // 既存のインデックスがあればマージしたうえで保存する
-          const indexed = await this.storage.loadIndex(tempIndex.indexId);
-          const mergedIndex = indexed ? indexed.merge(tempIndex) : tempIndex;
-          await this.storage.saveIndex(mergedIndex);
+    // FIXME: すでにストレージに保存されているインデックスはマージする
 
-          // 進捗を出力. 標準出力+キャリッジリターン(\r)で1行に進捗を出力するようにし、ループの最後に改行(\n)を出力
-          const progress = `flush complete ${cursor}/${tempIndexCount}\r`;
-          process.stdout.write(progress);
-        }
-        resolve();
-      });
-      workers.push(worker);
-    }
+    // TIPS: 以下のように標準出力+キャリッジリターン(\r)で実行件数を出力すると、一行でインデックス保存件数の進捗を出力できるので余力があればやってみる.
+    //       process.stdout.write(`flush complete ${処理しているインデックス番号}/${tempIndexCount}\r`);
+    //       ループの最後に改行することで後続の出力に上書きされないようにすることも忘れずに
+    //       process.stdout.write('\n')
 
-    // Promise.allで全ての並行処理が完了するのを待つ
-    await Promise.all(workers).then(() => process.stdout.write('\n'));
-
-    // バッファをクリアする
     this.tempIndexes.clear();
   }
 }

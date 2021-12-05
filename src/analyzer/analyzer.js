@@ -27,18 +27,13 @@ class Analyzer {
    * 文書の解析を行い、トークンに分割する
    * - charFiltersで解析の前処理を行う. 例: 文書の正規化など
    * - tokenizerで文書のトークン化を行う
-   * - tokenFilterで解析の後処理を行う. 例: 不要なトークンの除去など
+   * - tokenFiltersで解析の後処理を行う. 例: 不要なトークンの除去など
    * @param {string} text
    * @return {Token[]}
    */
   analyze(text) {
-    const filteredText = this.charFilters.reduce((text, charFilter) => {
-      return charFilter.filter(text);
-    }, text);
-    const tokens = this.tokenizer.tokenize(filteredText);
-    return this.tokenFilters.reduce((tokens, tokenFilter) => {
-      return tokens.filter((token) => tokenFilter.filter(token));
-    }, tokens);
+    const tokens = []; // FIXME: インプットをトークンに分割
+    return tokens; // FIXME: charFiltersで前処理、tokenFiltersで後処理を行う
   }
 }
 
