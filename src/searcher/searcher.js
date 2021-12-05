@@ -23,10 +23,10 @@ class Searcher {
    * - トークンを用いてインデックスを取得
    * - インデックスに含まれる文書IDから文書を取得
    * @param {string} query
-   * @param {number | null} limit
+   * @param {number} limit
    * @return {Promise<SearchResult>}
    */
-  async search(query, limit = null) {
+  async search(query, limit = 10) {
     const tokens = this.analyzer.analyze(query);
     // トークンの重複を排除して、インデックスを取得
     const targetIndexIds = toSet(tokens.map((token) => token.surface));

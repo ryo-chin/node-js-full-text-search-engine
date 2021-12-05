@@ -70,6 +70,7 @@ describe('index', () => {
     const token = 'JavaScript';
 
     const documentId = await indexer.indexDocument(title, text);
+    await indexer.flush();
     const otherDocumentId = await indexer.indexDocument(otherTitle, otherText);
     await indexer.flush();
 

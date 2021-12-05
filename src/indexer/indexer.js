@@ -27,6 +27,7 @@ class Indexer {
     this.analyzer = analyzer;
     this.storage = storage;
     this.idGenerator = idGenerator;
+    /** @type {Map<string, InvertedIndex>} */
     this.tempIndexes = new Map();
     this.limit = limit || 100000;
   }

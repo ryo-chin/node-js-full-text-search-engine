@@ -6,19 +6,19 @@ const { execAsyncWithPerformance } = require('../util/performance-util');
  * 外部データを利用したインデックスを実行するコマンド
  * - WikipediaのJsonデータをインデックスすることを想定
  * @param {string} inputFilePath 外部データファイルのパス
- * @param {string} outputFilePath インデックスするストレージのパス. 指定がない場合はインメモリの一時ストレージが利用される
+ * @param {string} storagePath インデックスするストレージのパス. 指定がない場合はインメモリの一時ストレージが利用される
  * @param {number} count インデックスする件数
  * @param {number} parallel インデックスの並行処理数
  * }}
  */
 async function indexByExternalData({
   inputFilePath,
-  outputFilePath,
+  storagePath,
   count,
   parallel,
 }) {
   const [_, time] = await execAsyncWithPerformance(async () => {
-    const indexer = await buildDefaultIndexer(outputFilePath);
+    const indexer = await buildDefaultIndexer(storagePath);
     const parser = new JSONDataLoader();
     const results = await parser.parse(count, inputFilePath);
     console.log('index document start');

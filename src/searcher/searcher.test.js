@@ -32,13 +32,13 @@ describe('search', () => {
     const indexer = await buildDefaultIndexer();
     searcher = new Searcher(indexer.analyzer, indexer.storage);
 
-    documents.forEach(async (input) => {
+    for (const input of documents) {
       await indexer.indexDocument(input.title, input.text);
-    });
+    }
     await indexer.flush();
   });
 
-  test('search all', async () => {
+  test('文書を検索できること', async () => {
     const result = await searcher.search('JavaScript');
     expect(result.docs.map((doc) => doc.text)).toEqual([
       documents[0].text,
@@ -46,7 +46,7 @@ describe('search', () => {
     ]);
   });
 
-  test('search with limit', async () => {
+  test('文書を指定した件数分だけ検索できること', async () => {
     const limit = 1;
     const result = await searcher.search('JavaScript', limit);
     expect(result.docs.map((doc) => doc.text)).toEqual([documents[0].text]);

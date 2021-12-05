@@ -12,7 +12,7 @@ class DocumentData {
    * @param {string} text
    * @param {number} tokenCount
    */
-  constructor(documentId, title, text, tokenCount) {
+  constructor(documentId, title, text, tokenCount = 0) {
     this.documentId = documentId;
     this.title = title;
     this.text = text;

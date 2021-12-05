@@ -24,9 +24,9 @@ require('yargs')
         type: 'string',
         describe: 'json dump data file path',
       });
-      yargs.positional('outputFilePath', {
+      yargs.positional('storagePath', {
         type: 'string',
-        describe: 'output file path (sqlite3)',
+        describe: 'storage file path (sqlite3)',
       });
       yargs.positional('count', {
         type: 'number',
@@ -43,7 +43,7 @@ require('yargs')
     async (args) => {
       await indexByExternalData({
         inputFilePath: args.inputFilePath,
-        outputFilePath: args.outputFilePath,
+        storagePath: args.storagePath,
         count: args.count,
         parallel: args.parallel,
       });
