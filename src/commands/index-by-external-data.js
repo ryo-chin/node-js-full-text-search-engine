@@ -1,6 +1,6 @@
 const JSONDataLoader = require('../dump/json-data-loader');
 const { buildDefaultIndexer } = require('../config');
-const { performance } = require('perf_hooks');
+const { execAsyncWithPerformance } = require('../util/performance-util');
 
 /**
  * 外部データを利用したインデックスを実行するコマンド
@@ -17,21 +17,19 @@ async function indexByExternalData({
   count,
   parallel,
 }) {
-  const start = performance.now();
-
-  const indexer = await buildDefaultIndexer(outputFilePath);
-  const parser = new JSONDataLoader();
-  const results = await parser
-    .parse(count, inputFilePath)
-    .catch((e) => console.error(e));
-  console.info(`parsed json data length=${results.length}`);
-  for (const [index, res] of results.entries()) {
-    await indexer.indexDocument(res.title, res.text);
-    console.info(`[${index + 1}] ${res.title}`);
-  }
-  await indexer.flush(parallel);
-
-  const time = performance.now() - start;
+  const [_, time] = await execAsyncWithPerformance(async () => {
+    const indexer = await buildDefaultIndexer(outputFilePath);
+    const parser = new JSONDataLoader();
+    const results = await parser
+      .parse(count, inputFilePath)
+      .catch((e) => console.error(e));
+    console.info(`parsed json data length=${results.length}`);
+    for (const [index, res] of results.entries()) {
+      await indexer.indexDocument(res.title, res.text);
+      console.info(`[${index + 1}] ${res.title}`);
+    }
+    await indexer.flush(parallel);
+  });
   console.info(`index finish (${time.toPrecision(3)}[ms])`);
 }
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const indexByExternalData = require('./commands/index-by-external-data.js');
-const search = require('./commands/search.js');
+const searchDocuments = require('./commands/search-documents.js');
 
 /**
  * yargsを利用したコマンド群
@@ -76,7 +76,7 @@ require('yargs')
     },
     // 処理
     async (args) => {
-      await search({
+      await searchDocuments({
         query: args.query,
         storagePath: args.storagePath,
         count: args.count,

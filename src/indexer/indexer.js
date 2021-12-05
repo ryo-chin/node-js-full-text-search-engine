@@ -107,12 +107,10 @@ class Indexer {
           const mergedIndex = indexed ? indexed.merge(tempIndex) : tempIndex;
           await this.storage.saveIndex(mergedIndex);
 
-          // 進捗を出力(標準出力+キャリッジリターンで1行に進捗を出力するようにし、ループの最後に改行を出力)
-          const progress =
-            cursor < tempIndexCount
-              ? `flush complete ${cursor}/${tempIndexCount}\r`
-              : '\n';
-          process.stdout.write(progress);
+          // 進捗を出力. 標準出力+キャリッジリターン(\r)で1行に進捗を出力するようにし、ループの最後に改行(\n)を出力
+          const suffix = cursor < tempIndexCount ? '\r' : '\n';
+          const progress = `flush complete ${cursor}/${tempIndexCount}`;
+          process.stdout.write(progress + suffix);
         }
         resolve();
       });

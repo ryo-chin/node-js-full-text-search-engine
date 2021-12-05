@@ -1,8 +1,8 @@
 const Searcher = require('../searcher/searcher');
 const { buildDefaultAnalyzer } = require('../config');
 const { buildStorage } = require('../config');
-const { performance } = require('perf_hooks');
 const { ellipsis } = require('../util/string-util');
+const { execAsyncWithPerformance } = require('../util/performance-util');
 
 const newlinePattern = /\r?\n/g;
 
@@ -12,13 +12,13 @@ const newlinePattern = /\r?\n/g;
  * @param {string} storagePath 検索対象のストレージのファイルパス
  * @param {number} count 取得する文書の件数
  */
-async function search({ query, storagePath, count }) {
+async function searchDocuments({ query, storagePath, count }) {
   const analyzer = await buildDefaultAnalyzer();
   const storage = await buildStorage(storagePath);
   const searcher = new Searcher(analyzer, storage);
-  const start = performance.now();
-  const result = await searcher.search(query, count);
-  const time = performance.now() - start;
+  const [result, time] = await execAsyncWithPerformance(
+    async () => await searcher.search(query, count)
+  );
   outputResult(result, time);
 }
 
@@ -33,4 +33,4 @@ function outputResult(result, time) {
   );
 }
 
-module.exports = search;
+module.exports = searchDocuments;
