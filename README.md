@@ -114,7 +114,7 @@ npm install
 
 ```shell
 # grep検索にかかった時間を測定したいので -c オプションでヒットした行数(=件数)を出力する
-time grep '{キーワード}' -c db/wikipedia/dump/wikipedia_dump_100000_decoded.txt
+time grep '{キーワード}' -c db/wikipedia/dump/wikipedia_dump_100000.txt
 
 # 例: JavaScript でgrep検索. 4[s]前後かかる
 time grep 'JavaScript' -c db/wikipedia/dump/wikipedia_dump_100000.txt

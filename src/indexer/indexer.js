@@ -108,9 +108,8 @@ class Indexer {
           await this.storage.saveIndex(mergedIndex);
 
           // 進捗を出力. 標準出力+キャリッジリターン(\r)で1行に進捗を出力するようにし、ループの最後に改行(\n)を出力
-          const suffix = cursor < tempIndexCount ? '\r' : '\n';
-          const progress = `flush complete ${cursor}/${tempIndexCount}`;
-          process.stdout.write(progress + suffix);
+          const progress = `flush complete ${cursor}/${tempIndexCount}\r`;
+          process.stdout.write(progress);
         }
         resolve();
       });
@@ -118,7 +117,7 @@ class Indexer {
     }
 
     // Promise.allで全ての並行処理が完了するのを待つ
-    await Promise.all(workers);
+    await Promise.all(workers).then(() => process.stdout.write('\n'));
 
     // バッファをクリアする
     this.tempIndexes.clear();
