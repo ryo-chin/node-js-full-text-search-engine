@@ -17,26 +17,26 @@ require('yargs')
     // コマンド
     'index',
     // 説明
-    'index from wikipedia dump data',
+    '文書データを読み込みインデックスを行う',
     // 引数オプション
     (yargs) => {
       yargs.positional('inputFilePath', {
         type: 'string',
-        describe: 'json dump data file path',
+        describe: '文書データのファイルパス',
       });
       yargs.positional('storagePath', {
         type: 'string',
-        describe: 'storage file path (sqlite3)',
+        describe: 'ストレージのファイルパス(.sqliteファイルを想定)',
       });
       yargs.positional('count', {
         type: 'number',
         default: 1000,
-        describe: 'index count',
+        describe: 'インデックスする文書数',
       });
       yargs.positional('parallel', {
         type: 'number',
         default: 4,
-        describe: 'parallel number at flush',
+        describe: 'flush時の並行処理数',
       });
     },
     // 処理
@@ -56,22 +56,22 @@ require('yargs')
     // コマンド
     'search',
     // 説明
-    'search from index',
+    'インデックスを用いてストレージから文書を検索する',
     // 引数オプション
     (yargs) => {
       yargs.positional('query', {
         type: 'string',
-        describe: 'search query',
+        describe: '検索するキーワード',
       });
       yargs.positional('storagePath', {
         type: 'string',
         default: './db/database.sqlite',
-        describe: 'index storage path (sqlite3)',
+        describe: 'ストレージのファイルパス(.sqliteファイルを想定)',
       });
       yargs.positional('count', {
         type: 'number',
         default: 1000,
-        describe: 'fetch count',
+        describe: '文書の取得件数',
       });
     },
     // 処理
