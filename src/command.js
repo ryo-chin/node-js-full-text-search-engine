@@ -78,6 +78,11 @@ require('yargs')
         default: false,
         describe: 'AND検索をするか、OR検索をするか (デフォルトはOR検索)',
       });
+      yargs.positional('sort', {
+        type: 'boolean',
+        default: false,
+        describe: 'ソートを行うか (デフォルトはしない)',
+      });
     },
     // 処理
     async (args) => {
@@ -85,7 +90,8 @@ require('yargs')
         query: args.query,
         storagePath: args.storagePath,
         count: args.count,
-        andSearch: args.andSearch
+        andSearch: args.andSearch,
+        sort: args.sort,
       });
     }
   )

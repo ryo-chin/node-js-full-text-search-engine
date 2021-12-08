@@ -2,6 +2,7 @@
 const Analyzer = require('../analyzer/analyzer');
 const DocumentData = require('../data/document-data');
 const InvertedIndex = require('../data/inverted-index');
+const Posting = require('../data/posting');
 const LocalFileStorage = require('../storage/local-file-storage');
 const { toSet } = require('../util/collection-util');
 
@@ -23,33 +24,45 @@ class Searcher {
    * - トークンを用いてインデックスを取得
    * - インデックスに含まれる文書IDから文書を取得
    * - フラグによってAND検索 OR検索を切り替えられる
+   * - フラグによってトークン利用回数が多いものを先頭に並び替えられる
    * @param {string} query
    * @param {number} limit
    * @param {boolean} andSearch
+   * @param {boolean} sortByToken
    * @return {Promise<SearchResult>}
    */
-  async search(query, limit = 10, andSearch = false) {
+  async search(query, limit = 10, andSearch = false, sortByToken = false) {
     const tokens = this.analyzer.analyze(query);
     // トークンの重複を排除して、インデックスを取得
     const targetIndexIds = toSet(tokens.map((token) => token.surface));
     const indexes = await this.storage.loadIndexes(targetIndexIds);
-    // 文書IDの重複を排除して文書を取得
-    const documentIds = this.extractDocumentIds(indexes, andSearch);
-    const searchIds = documentIds.slice(0, limit || 10);
+    // 検索条件に合わせてポスティングを抽出
+    const postings = this.extractPostings(indexes, andSearch);
+    // 文書IDごとにトークン利用回数の合計値を計算する
+    const docToTokenCounts = this.calculateTokenUseCount(postings);
+    // ソートの要否に合わせて文書IDを抽出
+    const documentIds = sortByToken
+      ? this.sortByTokenUseCount(docToTokenCounts)
+      : toSet(postings.map((p) => p.documentId));
     return this.storage
-      .loadDocuments(searchIds)
-      .then((docs) => new SearchResult(docs, documentIds.length));
+      .loadDocuments(documentIds.slice(0, limit || 10))
+      .then((docs) => {
+        const docs1 = docs.map(
+          (doc) => new DocumentResult(doc, docToTokenCounts.get(doc.documentId))
+        );
+        return new SearchResult(docs1, documentIds.length);
+      });
   }
 
   /**
-   * インデックスの配列から検索対象の文書IDを抽出する
+   * インデックスの配列から検索対象のポスティングを抽出する
    * - フラグで AND検索(積集合を取る) または OR検索(和集合を取る) を指定できる
    *
    * @param {InvertedIndex[]} indexes
    * @param {boolean} andSearch true: AND検索, false: OR検索
-   * @return {string[]}
+   * @return {Posting[]}
    */
-  extractDocumentIds(indexes, andSearch) {
+  extractPostings(indexes, andSearch) {
     return andSearch
       ? indexes
           .filter((index) => index)
@@ -62,12 +75,43 @@ class Searcher {
               prevValues.map((pv) => pv.documentId).includes(nv.documentId)
             );
           })
-          .map((pos) => pos.documentId)
-      : toSet(
-          indexes
-            .filter((index) => index)
-            .flatMap((index) => index.postings.map((p) => p.documentId))
-        );
+      : indexes.filter((index) => index).flatMap((index) => index.postings);
+  }
+
+  /**
+   * トークンの利用回数をもとに並び替え
+   *
+   * @param {Posting[]} postings
+   * @return {string[]}
+   */
+  sortByTokenUseCount(docToUseCounts) {
+    return (
+      Array.from(docToUseCounts.entries())
+        // 利用数の降順に並び替え
+        .sort(([_, prevUseCount], [__, nextUseCount]) => {
+          return nextUseCount - prevUseCount;
+        })
+        .map(([docId, _]) => docId)
+    );
+  }
+
+  /**
+   * 文書IDごとにトークンの利用回数の合計値を計算する
+   *
+   * @param postings
+   * @return {Map<string, number>} key: 文書ID, value: トークン利用回数の合計数
+   */
+  calculateTokenUseCount(postings) {
+    return postings.reduce((calculated, posting) => {
+      if (!calculated.get(posting.documentId)) {
+        calculated.set(posting.documentId, 0);
+      }
+      calculated.set(
+        posting.documentId,
+        calculated.get(posting.documentId) + posting.useCount
+      );
+      return calculated;
+    }, new Map());
   }
 }
 
@@ -76,14 +120,36 @@ class Searcher {
  */
 class SearchResult {
   /**
-   * @param {DocumentData[]} docs
+   * @param {DocumentResult[]} docs
    * @param {number} count
    */
   constructor(docs, count) {
-    /** @type {DocumentData[]} ヒットした文書 */
+    /** @type {DocumentResult[]} ヒットした文書 */
     this.docs = docs;
     /** @type {number} 総ヒット件数 */
     this.count = count;
+  }
+}
+
+/**
+ * 検索結果用の文書情報を保持するclass
+ */
+class DocumentResult {
+  /**
+   * @param {DocumentData} doc
+   * @param {number} matchedTokenUseCount ヒットしたトークンの合計利用回数
+   */
+  constructor(doc, matchedTokenUseCount) {
+    this.doc = doc;
+    this.matchedTokenUseCount = matchedTokenUseCount;
+  }
+
+  get title() {
+    return this.doc.title;
+  }
+
+  get text() {
+    return this.doc.text;
   }
 }
 

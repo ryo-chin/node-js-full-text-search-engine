@@ -12,21 +12,23 @@ const newlinePattern = /\r?\n/g;
  * @param {string} storagePath 検索対象のストレージのファイルパス
  * @param {number} count 取得する文書の件数
  * @param {boolean} andSearch AND検索 または OR検索をするか
+ * @param {boolean} sort ソートをするか
  */
-async function searchDocuments({ query, storagePath, count, andSearch }) {
+async function searchDocuments({ query, storagePath, count, andSearch, sort }) {
   const analyzer = await buildDefaultAnalyzer();
   const storage = await buildStorage(storagePath);
   const searcher = new Searcher(analyzer, storage);
   const [result, time] = await execAsyncWithPerformance(
-    async () => await searcher.search(query, count, andSearch)
+    async () => await searcher.search(query, count, andSearch, sort)
   );
-  outputResult(result, time);
+  outputResult(result, time, andSearch);
 }
 
 function outputResult(result, time, andSearch) {
   result.docs.forEach((doc) => {
     console.info(`========`);
     console.info(`title: ${ellipsis(doc.title, 100)}`);
+    console.info(`matchedTokenUseCount: ${doc.matchedTokenUseCount}`);
     console.info(ellipsis(doc.text.replace(newlinePattern, ''), 100));
   });
   console.info(
