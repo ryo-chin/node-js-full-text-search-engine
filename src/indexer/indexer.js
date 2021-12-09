@@ -80,7 +80,7 @@ class Indexer {
       // FIXME: すでにストレージに保存されているインデックスとマージする
       const savedIndex = await this.storage.loadIndex(tempIndex.indexId);
       await this.storage.saveIndex(
-          savedIndex ? savedIndex.merge(tempIndex) : tempIndex
+        savedIndex ? savedIndex.merge(tempIndex) : tempIndex
       );
       // ADVANCED: 以下のように標準出力+キャリッジリターン(\r)で実行件数を出力すると、一行でインデックス保存件数の進捗を出力できるので余力があればやってみる.
       //           process.stdout.write(`flush complete ${処理した件数}/${tempIndexCount}\r`);
@@ -88,7 +88,7 @@ class Indexer {
       process.stdout.write(`flush complete ${index}/${tempIndexCount}\r`);
     }
     process.stdout.write(
-        `flush complete ${tempIndexCount}/${tempIndexCount}\n`
+      `flush complete ${tempIndexCount}/${tempIndexCount}\n`
     );
 
     // [別解] Promise.allを使った例
@@ -111,7 +111,10 @@ class Indexer {
     //       `flush complete ${savedCount}/${tempIndexCount}\r`
     //     );
     //   })
-    // ).finally(() => process.stdout.write('\n'));  }
+    // ).finally(() => process.stdout.write('\n'));
+
+    this.tempIndexes.clear();
+  }
 }
 
 module.exports = Indexer;
