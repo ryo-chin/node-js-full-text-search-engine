@@ -64,6 +64,8 @@ class Indexer {
         .addPosting(new Posting(documentId, 0));
     });
 
+    // ADVANCED: Tokenの利用回数を集計してインデックス情報に含めてみよう（= PostingのuseCountにTokenの利用回数をsetすればOK）
+
     return documentId;
   }
 

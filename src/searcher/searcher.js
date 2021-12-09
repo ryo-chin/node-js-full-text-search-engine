@@ -51,6 +51,14 @@ class Searcher {
       documentIds.slice(0, limit)
     );
     // FIXME: 取得した文書をSearchResultに詰める
+
+    // ADVANCED: andSearch = true のとき、全てのトークンを含んでいる文書のみ検索にヒットするようにしてみよう
+    // TIPS: 取得できたIndexごとに含まれる文書IDの積集合を取ると全てのトークンを含んでいる文書IDが特定できるよ
+
+    // ADVANCED: sortByToken = true のとき、トークンの利用回数が多い文書を先頭に並び替えてみよう
+    // TIPS: まずは文書ごとのトークン利用回数を集計して key: 文書ID, value: keyの文書に登場したトークン利用回数の合計値 というMapを作ってみよう
+    // TIPS: Array.from({トークン利用回数を集計したMap}.entries()) とすると [文書ID, トークン利用回数の合計値][] という二次元配列ができるのでsortすることができるよ
+
     return new SearchResult(
       documents.map((doc) => new DocumentResult(doc)),
       documentIds.length
