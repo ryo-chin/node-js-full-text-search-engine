@@ -47,10 +47,13 @@ class Searcher {
     return this.storage
       .loadDocuments(documentIds.slice(0, limit || 10))
       .then((docs) => {
-        const docs1 = docs.map(
-          (doc) => new DocumentResult(doc, docToTokenCounts.get(doc.documentId))
+        return new SearchResult(
+          docs.map(
+            (doc) =>
+              new DocumentResult(doc, docToTokenCounts.get(doc.documentId))
+          ),
+          documentIds.length
         );
-        return new SearchResult(docs1, documentIds.length);
       });
   }
 
@@ -80,8 +83,7 @@ class Searcher {
 
   /**
    * トークンの利用回数をもとに並び替え
-   *
-   * @param {Posting[]} postings
+   * @param {Map<string, number>} docToUseCounts
    * @return {string[]}
    */
   sortByTokenUseCount(docToUseCounts) {
