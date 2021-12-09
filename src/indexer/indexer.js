@@ -47,7 +47,18 @@ class Indexer {
     const tokens = this.analyzer.analyze(text);
 
     // FIXME: 文書をストレージに保存する
-    this.storage.saveDocument(new DocumentData(documentId, title, text, 0));
+    await this.storage.saveDocument(
+      new DocumentData(documentId, title, text, 0)
+    );
+
+    // ADVANCED: Tokenの利用回数を集計してインデックス情報に含めてみよう（= PostingのuseCountにTokenの利用回数をsetすればOK）
+    const tokenToUseCounts = tokens.reduce((tokens, token) => {
+      if (!tokens.get(token.surface)) {
+        tokens.set(token.surface, 0);
+      }
+      tokens.set(token.surface, tokens.get(token.surface) + 1);
+      return tokens;
+    }, new Map());
 
     // FIXME: トークンからインデックスを作成しバッファに一時保存する
     // TIPS: バッファ(this.tempIndexes)はMapなので、Map.getやMap.setで値の出し入れができる
@@ -61,10 +72,10 @@ class Indexer {
       // TIPS: インデックス(InvertedIndex)はaddPostingという関数で文書IDを追加することができる
       this.tempIndexes
         .get(token.surface)
-        .addPosting(new Posting(documentId, 0));
+        .addPosting(
+          new Posting(documentId, tokenToUseCounts.get(token.surface))
+        );
     });
-
-    // ADVANCED: Tokenの利用回数を集計してインデックス情報に含めてみよう（= PostingのuseCountにTokenの利用回数をsetすればOK）
 
     return documentId;
   }

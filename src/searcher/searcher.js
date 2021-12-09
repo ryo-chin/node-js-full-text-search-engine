@@ -40,29 +40,89 @@ class Searcher {
       toSet(tokens.map((token) => token.surface))
     );
 
-    // FIXME: 取得したインデックスから文書IDを取り出し、ストレージから文書を取得する. 事前に文書IDの重複を排除しておかないと同じ文書が複数取れてしまうかも...
-    const documentIds = toSet(
-      indexes
-        .flatMap((index) => index.postings)
-        .map((posting) => posting.documentId)
-    );
-    // FIXME: limitで指定された数だけ文書をストレージから取得するようにする
-    const documents = await this.storage.loadDocuments(
-      documentIds.slice(0, limit)
-    );
-    // FIXME: 取得した文書をSearchResultに詰める
-
     // ADVANCED: andSearch = true のとき、全てのトークンを含んでいる文書のみ検索にヒットするようにしてみよう
     // TIPS: 取得できたIndexごとに含まれる文書IDの積集合を取ると全てのトークンを含んでいる文書IDが特定できるよ
+    const postings = this.extractPostings(indexes, andSearch);
 
     // ADVANCED: sortByToken = true のとき、トークンの利用回数が多い文書を先頭に並び替えてみよう
     // TIPS: まずは文書ごとのトークン利用回数を集計して key: 文書ID, value: keyの文書に登場したトークン利用回数の合計値 というMapを作ってみよう
     // TIPS: Array.from({トークン利用回数を集計したMap}.entries()) とすると [文書ID, トークン利用回数の合計値][] という二次元配列ができるのでsortすることができるよ
+    const docToTokenCounts = this.calculateTokenUseCount(postings);
+    // FIXME: 取得したインデックスから文書IDを取り出し、ストレージから文書を取得する. 事前に文書IDの重複を排除しておかないと同じ文書が複数取れてしまうかも...
+    const documentIds = sortByToken
+      ? this.sortByTokenUseCount(docToTokenCounts)
+      : toSet(postings.map((p) => p.documentId));
 
-    return new SearchResult(
-      documents.map((doc) => new DocumentResult(doc)),
-      documentIds.length
+    // FIXME: limitで指定された数だけ文書をストレージから取得するようにする
+    // FIXME: 取得した文書をSearchResultに詰める
+    return this.storage
+      .loadDocuments(documentIds.slice(0, limit || 10))
+      .then((docs) => {
+        const docs1 = docs.map(
+          (doc) => new DocumentResult(doc, docToTokenCounts.get(doc.documentId))
+        );
+        return new SearchResult(docs1, documentIds.length);
+      });
+  }
+
+  /**
+   * インデックスの配列から検索対象のポスティングを抽出する
+   * - フラグで AND検索(積集合を取る) または OR検索(和集合を取る) を指定できる
+   *
+   * @param {InvertedIndex[]} indexes
+   * @param {boolean} andSearch true: AND検索, false: OR検索
+   * @return {Posting[]}
+   */
+  extractPostings(indexes, andSearch) {
+    return andSearch
+      ? indexes
+          .filter((index) => index)
+          .map((index) => index.postings)
+          .reduce((prevValues, nextValues) => {
+            if (prevValues.length === 0) {
+              return [];
+            }
+            return nextValues.filter((nv) =>
+              prevValues.map((pv) => pv.documentId).includes(nv.documentId)
+            );
+          })
+      : indexes.filter((index) => index).flatMap((index) => index.postings);
+  }
+
+  /**
+   * トークンの利用回数をもとに並び替え
+   *
+   * @param {Map<string, number>} docToUseCounts
+   * @return {string[]}
+   */
+  sortByTokenUseCount(docToUseCounts) {
+    return (
+      Array.from(docToUseCounts.entries())
+        // 利用数の降順に並び替え
+        .sort(([_, prevUseCount], [__, nextUseCount]) => {
+          return nextUseCount - prevUseCount;
+        })
+        .map(([docId, _]) => docId)
     );
+  }
+
+  /**
+   * 文書IDごとにトークンの利用回数の合計値を計算する
+   *
+   * @param postings
+   * @return {Map<string, number>} key: 文書ID, value: トークン利用回数の合計数
+   */
+  calculateTokenUseCount(postings) {
+    return postings.reduce((calculated, posting) => {
+      if (!calculated.get(posting.documentId)) {
+        calculated.set(posting.documentId, 0);
+      }
+      calculated.set(
+        posting.documentId,
+        calculated.get(posting.documentId) + posting.useCount
+      );
+      return calculated;
+    }, new Map());
   }
 }
 
