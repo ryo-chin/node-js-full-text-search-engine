@@ -51,6 +51,8 @@ class Indexer {
     // TIPS: バッファ(this.tempIndexes)はMapなので、Map.getやMap.setで値の出し入れができる
     // TIPS: インデックス(InvertedIndex)はaddPostingという関数で文書IDを追加することができる
 
+    // ADVANCED: Tokenの利用回数を集計してインデックス情報に含めてみよう（= PostingのuseCountにTokenの利用回数をsetすればOK）
+
     return documentId;
   }
 
