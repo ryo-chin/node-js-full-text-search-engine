@@ -51,7 +51,10 @@ class Searcher {
       documentIds.slice(0, limit)
     );
     // FIXME: 取得した文書をSearchResultに詰める
-    return new SearchResult(documents, documentIds.length);
+    return new SearchResult(
+      documents.map((doc) => new DocumentResult(doc)),
+      documentIds.length
+    );
   }
 }
 
