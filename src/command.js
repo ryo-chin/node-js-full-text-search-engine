@@ -73,6 +73,16 @@ require('yargs')
         default: 1000,
         describe: '文書の取得件数',
       });
+      yargs.positional('andSearch', {
+        type: 'boolean',
+        default: false,
+        describe: 'AND検索をするか、OR検索をするか (デフォルトはOR検索)',
+      });
+      yargs.positional('sort', {
+        type: 'boolean',
+        default: false,
+        describe: 'ソートを行うか (デフォルトはしない)',
+      });
     },
     // 処理
     async (args) => {
@@ -80,6 +90,8 @@ require('yargs')
         query: args.query,
         storagePath: args.storagePath,
         count: args.count,
+        andSearch: args.andSearch,
+        sort: args.sort,
       });
     }
   )
