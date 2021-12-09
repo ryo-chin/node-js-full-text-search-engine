@@ -32,8 +32,9 @@ class Analyzer {
    * @return {Token[]}
    */
   analyze(text) {
+    // FIXME: charFiltersをループで回してtextの正規化などを行う
     const tokens = []; // FIXME: インプットをトークンに分割
-    return tokens; // FIXME: charFiltersで前処理、tokenFiltersで後処理を行う
+    return tokens; // FIXME: tokenFiltersをループで回して不要なトークンを取り除く
   }
 }
 
