@@ -10,7 +10,7 @@ const Posting = require('./posting');
  */
 class InvertedIndex {
   /**
-   * @param {string} indexId
+   * @param {string} indexId トークンの表層形(Token.surface)
    * @param {Posting[]} postings
    * @param {Token} token
    */

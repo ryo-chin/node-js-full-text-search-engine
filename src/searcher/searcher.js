@@ -35,7 +35,9 @@ class Searcher {
     const tokens = this.analyzer.analyze(query);
 
     // FIXME: 分割したトークンからsurface取り出し、ストレージからインデックスを取得する. surfaceの重複を排除しておいた方がIOが減るので効率的.
-    // TIPS: toSet(array) というutil関数を使うとstring配列から重複を排除した配列を取得できる
+    // TIPS:
+    //   - indexIdの重複を排除しておいた方がIOが減るので効率的
+    //   - toSet(array) というutil関数を使うとstring配列から重複を排除した配列を取得できる
     const indexes = await this.storage.loadIndexes(
       toSet(tokens.map((token) => token.surface))
     );
@@ -45,10 +47,12 @@ class Searcher {
     const postings = this.extractPostings(indexes, andSearch);
 
     // ADVANCED: sortByToken = true のとき、トークンの利用回数が多い文書を先頭に並び替えてみよう
-    // TIPS: まずは文書ごとのトークン利用回数を集計して key: 文書ID, value: keyの文書に登場したトークン利用回数の合計値 というMapを作ってみよう
-    // TIPS: Array.from({トークン利用回数を集計したMap}.entries()) とすると [文書ID, トークン利用回数の合計値][] という二次元配列ができるのでsortすることができるよ
+    // TIPS:
+    //   - まずは文書ごとのトークン利用回数を集計して key: 文書ID, value: keyの文書に登場したトークン利用回数の合計値 というMapを作ってみよう
+    //   - Array.from({トークン利用回数を集計したMap}.entries()) とすると [文書ID, トークン利用回数の合計値][] という二次元配列ができるのでsortすることができるよ    const docToTokenCounts = this.calculateTokenUseCount(postings);
     const docToTokenCounts = this.calculateTokenUseCount(postings);
-    // FIXME: 取得したインデックスから文書IDを取り出し、ストレージから文書を取得する. 事前に文書IDの重複を排除しておかないと同じ文書が複数取れてしまうかも...
+    // FIXME: 取得したインデックスから文書IDを取り出し、ストレージから文書を取得する. 取得した文書はDocumentResult(matchedTokenUseCountは一旦0でOK)に詰め替えてからSearchResultに詰める
+    // TIPS: 事前に文書IDの重複を排除しておかないと同じ文書が複数取れてしまうかも...
     const documentIds = sortByToken
       ? this.sortByTokenUseCount(docToTokenCounts)
       : toSet(postings.map((p) => p.documentId));
