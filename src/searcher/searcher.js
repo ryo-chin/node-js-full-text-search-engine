@@ -61,13 +61,13 @@ class Searcher {
 class SearchResult {
   /**
    * @param {DocumentResult[]} docs
-   * @param {number} count
+   * @param {number} totalCount
    */
-  constructor(docs, count) {
+  constructor(docs, totalCount) {
     /** @type {DocumentResult[]} ヒットした文書 */
     this.docs = docs;
     /** @type {number} 総ヒット件数 */
-    this.count = count;
+    this.totalCount = totalCount;
   }
 }
 

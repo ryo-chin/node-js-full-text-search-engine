@@ -49,7 +49,7 @@ describe('search', () => {
   test('AND検索できること', async () => {
     const result = await searcher.search('機械学習', 10, true);
     expect(result.docs.map((doc) => doc.text)).toEqual([documents[0].text]);
-    expect(result.count).toEqual(1);
+    expect(result.totalCount).toEqual(1);
   });
 
   test('トークンを多く含む文書を先頭にソートできること', async () => {
@@ -59,6 +59,6 @@ describe('search', () => {
       documents[2].text,
       documents[4].text,
     ]);
-    expect(result.count).toEqual(3);
+    expect(result.totalCount).toEqual(3);
   });
 });
