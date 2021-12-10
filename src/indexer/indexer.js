@@ -27,8 +27,8 @@ class Indexer {
     this.analyzer = analyzer;
     this.storage = storage;
     this.idGenerator = idGenerator;
-    /** @type {InvertedIndex[]} */
-    this.tempIndexes = [];
+    /** @type {Map<string, InvertedIndex>} key: 文書中に含まれるトークン(= token.surface) value: 転置インデックス */
+    this.tempIndexes = new Map();
     this.limit = limit || 100000;
   }
 
@@ -56,7 +56,8 @@ class Indexer {
     //     - 文書IDはPostingという形式で配列に入れて保存する
     //       - addPostingという関数で追加することができる
     //       - PostingのuseCountは一旦0のままで良い
-    //   - バッファ(this.tempIndexes)には InvertedIndex を保存する
+    //   - バッファ(this.tempIndexes)には key: token.surface, value: InvertedIndex という形式で保存する
+    //     - バッファはMapなので、Map.getやMap.setで値の出し入れができる
 
     // MORE: (flushの実装完了後)バッファ内の一時インデックスが閾値(this.limit)を超えたときflushしよう
 
@@ -86,7 +87,7 @@ class Indexer {
     //   - process.stdout.write(`flush complete ${処理した件数}/${tempIndexCount}\r`);
     //   - ループの最後に改行することで後続の出力に上書きされないようにすることも忘れずに
 
-    this.tempIndexes = [];
+    this.tempIndexes.clear();
   }
 }
 
