@@ -74,10 +74,12 @@ describe('index', () => {
     const otherDocumentId = await indexer.indexDocument(otherTitle, otherText);
     await indexer.flush();
 
-    const sameIndex = await storage.loadIndex([token]);
-    expect(sameIndex.postings.map((posting) => posting.documentId)).toEqual([
-      documentId,
-      otherDocumentId,
-    ]);
+    const sameIndex = await storage.loadIndex(token);
+    [documentId, otherDocumentId].forEach((docId) => {
+      expect(
+        sameIndex.postings.map((posting) => posting.documentId)
+      ).toContainEqual(docId);
+    });
+    expect(sameIndex.postings.length).toEqual(2);
   });
 });
