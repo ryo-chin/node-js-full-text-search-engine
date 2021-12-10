@@ -57,8 +57,7 @@ class Searcher {
       ? this.sortByTokenUseCount(docToTokenCounts)
       : toSet(postings.map((p) => p.documentId));
 
-    // FIXME: limitで指定された数だけ文書をストレージから取得するようにする
-    // FIXME: 取得した文書をSearchResultに詰める
+    // FIXME: limitで指定された数だけ文書をストレージから取得するようにする. totalCountには総ヒット件数を入れ、何件中何件取得したのかわかるようにしよう
     return this.storage
       .loadDocuments(documentIds.slice(0, limit || 10))
       .then((docs) => {
@@ -136,13 +135,13 @@ class Searcher {
 class SearchResult {
   /**
    * @param {DocumentResult[]} docs
-   * @param {number} count
+   * @param {number} totalCount
    */
-  constructor(docs, count) {
+  constructor(docs, totalCount) {
     /** @type {DocumentResult[]} ヒットした文書 */
     this.docs = docs;
     /** @type {number} 総ヒット件数 */
-    this.count = count;
+    this.totalCount = totalCount;
   }
 }
 

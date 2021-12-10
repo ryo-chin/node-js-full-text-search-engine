@@ -32,7 +32,7 @@ function outputResult(result, time, andSearch) {
     console.info(ellipsis(doc.text.replace(newlinePattern, ''), 100));
   });
   console.info(
-    `\n${result.count}件中${result.docs.length}件 (${time.toPrecision(
+    `\n${result.totalCount}件中${result.docs.length}件 (${time.toPrecision(
       3
     )}[ms]) by ${andSearch ? 'AND検索' : 'OR検索'}`
   );

@@ -50,6 +50,6 @@ describe('search', () => {
     const limit = 1;
     const result = await searcher.search('JavaScript', limit);
     expect(result.docs.map((doc) => doc.text)).toEqual([documents[0].text]);
-    expect(result.count).toEqual(2);
+    expect(result.totalCount).toEqual(2);
   });
 });
