@@ -42,7 +42,7 @@ class Searcher {
     // FIXME: 取得したインデックスから文書IDを取り出し、ストレージから文書を取得する. 取得した文書はDocumentResult(matchedTokenUseCountは一旦0でOK)に詰め替えてからSearchResultに詰める
     // TIPS: 事前に文書IDの重複を排除しておかないと同じ文書が複数取れてしまうかも...
 
-    // FIXME: limitで指定された数だけ文書をストレージから取得するようにする
+    // FIXME: limitで指定された数だけ文書をストレージから取得するようにする. totalCountには総ヒット件数を入れ、何件中何件取得したのかわかるようにしよう
 
     return new SearchResult([], 0);
     // ADVANCED: andSearch = true のとき、全てのトークンを含んでいる文書のみ検索にヒットするようにしてみよう
