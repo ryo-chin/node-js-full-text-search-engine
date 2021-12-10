@@ -72,15 +72,22 @@ class Indexer {
     //   - バッファ(this.tempIndexes)には key: token.surface, value: InvertedIndex という形式で保存する
     //     - バッファはMapなので、Map.getやMap.setで値の出し入れができる
     tokens.forEach((token) => {
-      let posting = new Posting(
-        documentId,
-        tokenToUseCounts.get(token.surface)
-      );
-      this.tempIndexes.push(new InvertedIndex(token.surface, [posting], token));
+      if (!this.tempIndexes.get(token.surface)) {
+        this.tempIndexes.set(
+          token.surface,
+          new InvertedIndex(token.surface, [], token)
+        );
+      }
+      // TIPS: インデックス(InvertedIndex)はaddPostingという関数で文書IDを追加することができる
+      this.tempIndexes
+        .get(token.surface)
+        .addPosting(
+          new Posting(documentId, tokenToUseCounts.get(token.surface))
+        );
     });
 
     // MORE: (flushの実装完了後)バッファ内の一時インデックスが閾値(this.limit)を超えたときflushしよう
-    if (this.tempIndexes.length > this.limit) {
+    if (this.tempIndexes.size > this.limit) {
       await this.flush();
     }
 
@@ -91,7 +98,7 @@ class Indexer {
    * インデックスをstorageに保存する
    */
   async flush() {
-    const tempIndexValues = this.tempIndexes;
+    const tempIndexValues = Array.from(this.tempIndexes.values());
     const tempIndexCount = tempIndexValues.length;
     console.info(`flush start tempIndexCount=${tempIndexCount}`);
 
@@ -117,19 +124,11 @@ class Indexer {
     );
 
     // [別解] Promise.allを使った例
-    // FIXME: バッファから取り出したインデックスをストレージに保存する
-    // TIPS: storageへの保存にはsaveIndexという関数が使える
-    // const summarizedIndexes = tempIndexValues.reduce((indexes, index) => {
-    //   if (!indexes.get(index.indexId)) {
-    //     indexes.set(index.indexId, index);
-    //   } else {
-    //     indexes.get(index.indexId).merge(index);
-    //   }
-    //   return indexes;
-    // }, new Map());
+    // // FIXME: バッファから取り出したインデックスをストレージに保存する
+    // // TIPS: storageへの保存にはsaveIndexという関数が使える
     // let savedCount = 0;
     // await Promise.all(
-    //   Array.from(summarizedIndexes.values()).map(async (tempIndex) => {
+    //   tempIndexValues.map(async (tempIndex, index) => {
     //     // FIXME: すでにストレージに保存されているインデックスとマージする
     //     // TIPS:
     //     //   - インデックスのマージはInvertedIndex.mergeという関数で行うことができる
