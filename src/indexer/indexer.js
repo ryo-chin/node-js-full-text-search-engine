@@ -28,8 +28,8 @@ class Indexer {
     this.analyzer = analyzer;
     this.storage = storage;
     this.idGenerator = idGenerator;
-    /** @type {Map<string, InvertedIndex>} key: 文書中に含まれるトークン(= token.surface) value: 転置インデックス */
-    this.tempIndexes = new Map();
+    /** @type {InvertedIndex[]} */
+    this.tempIndexes = [];
     this.limit = limit || 100000;
   }
 
@@ -72,22 +72,15 @@ class Indexer {
     //   - バッファ(this.tempIndexes)には key: token.surface, value: InvertedIndex という形式で保存する
     //     - バッファはMapなので、Map.getやMap.setで値の出し入れができる
     tokens.forEach((token) => {
-      if (!this.tempIndexes.get(token.surface)) {
-        this.tempIndexes.set(
-          token.surface,
-          new InvertedIndex(token.surface, [], token)
-        );
-      }
-      // TIPS: インデックス(InvertedIndex)はaddPostingという関数で文書IDを追加することができる
-      this.tempIndexes
-        .get(token.surface)
-        .addPosting(
-          new Posting(documentId, tokenToUseCounts.get(token.surface))
-        );
+      let posting = new Posting(
+        documentId,
+        tokenToUseCounts.get(token.surface)
+      );
+      this.tempIndexes.push(new InvertedIndex(token.surface, [posting], token));
     });
 
     // MORE: (flushの実装完了後)バッファ内の一時インデックスが閾値(this.limit)を超えたときflushしよう
-    if (this.tempIndexes.size > this.limit) {
+    if (this.tempIndexes.length > this.limit) {
       await this.flush();
     }
 
@@ -98,7 +91,7 @@ class Indexer {
    * インデックスをstorageに保存する
    */
   async flush() {
-    const tempIndexValues = Array.from(this.tempIndexes.values());
+    const tempIndexValues = this.tempIndexes;
     const tempIndexCount = tempIndexValues.length;
     console.info(`flush start tempIndexCount=${tempIndexCount}`);
 
@@ -124,11 +117,19 @@ class Indexer {
     );
 
     // [別解] Promise.allを使った例
-    // // FIXME: バッファから取り出したインデックスをストレージに保存する
-    // // TIPS: storageへの保存にはsaveIndexという関数が使える
+    // FIXME: バッファから取り出したインデックスをストレージに保存する
+    // TIPS: storageへの保存にはsaveIndexという関数が使える
+    // const summarizedIndexes = tempIndexValues.reduce((indexes, index) => {
+    //   if (!indexes.get(index.indexId)) {
+    //     indexes.set(index.indexId, index);
+    //   } else {
+    //     indexes.get(index.indexId).merge(index);
+    //   }
+    //   return indexes;
+    // }, new Map());
     // let savedCount = 0;
     // await Promise.all(
-    //   tempIndexValues.map(async (tempIndex, index) => {
+    //   Array.from(summarizedIndexes.values()).map(async (tempIndex) => {
     //     // FIXME: すでにストレージに保存されているインデックスとマージする
     //     // TIPS:
     //     //   - インデックスのマージはInvertedIndex.mergeという関数で行うことができる
@@ -148,7 +149,7 @@ class Indexer {
     //   })
     // ).finally(() => process.stdout.write('\n'));
 
-    this.tempIndexes.clear();
+    this.tempIndexes = [];
   }
 }
 
